@@ -19,9 +19,9 @@ pub fn part1(input: &str) -> u64 {
     left.iter().zip(&right).map(|(l, r)| l.abs_diff(*r)).sum()
 }
 
-// 5.9us
+// 5.5us
 pub fn part2(input: &str) -> u64 {
-    let mut num_counts = vec![0u16; 99999];
+    let mut num_counts = vec![0u8; 99999];
     let line_length = memchr::memchr(b'\n', input.as_bytes()).unwrap();
     let lines = input.len() / line_length;
     let mut appeared = Vec::with_capacity(lines);
