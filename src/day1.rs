@@ -3,7 +3,7 @@ use std::{
     simd::{LaneCount, Simd, SupportedLaneCount, num::SimdUint},
 };
 
-// 11.2us
+// 14.8us
 pub fn part1(input: &str) -> u64 {
     let line_length = memchr::memchr(b'\n', input.as_bytes()).unwrap();
     let lines = input.len() / line_length;
@@ -19,7 +19,7 @@ pub fn part1(input: &str) -> u64 {
     left.iter().zip(&right).map(|(l, r)| l.abs_diff(*r)).sum()
 }
 
-// 4.1us
+// 8.2us
 pub fn part2(input: &str) -> u64 {
     let mut num_counts = vec![0u16; 99999];
     let line_length = memchr::memchr(b'\n', input.as_bytes()).unwrap();
@@ -72,47 +72,77 @@ fn parse_line_simd(
     assert!(input.len() >= first_col_len);
     assert!(input.len() >= line_length);
 
+    // SAFETY: Buy a better cpu :ferrisclueless:
     match (first_col_len, second_col_offset, line_length) {
-        (5, 8, 13) => (
-            simd_parse_start::<8, 5>(input[..second_col_offset].try_into().unwrap()),
-            simd_parse_end::<8, 3>(input[first_col_len..line_length].try_into().unwrap()),
-        ),
-        (1, 4, 5) => (
-            simd_parse_start::<4, 1>(input[..second_col_offset].try_into().unwrap()),
-            simd_parse_end::<4, 3>(input[first_col_len..line_length].try_into().unwrap()),
-        ),
+        (5, 8, 13) => unsafe {
+            simd_parse_inner::<13, 5, 16>(input[..line_length].try_into().unwrap())
+        },
+        (1, 4, 5) => unsafe {
+            simd_parse_inner::<5, 1, 8>(input[..line_length].try_into().unwrap())
+        },
         _ => unimplemented!(),
     }
 }
 
-fn simd_parse_start<const INP_LEN: usize, const NUM_SIZE: usize>(line: &[u8; INP_LEN]) -> u64
+const fn get_multipliers<const LANE_SIZE: usize, const INP_LEN: usize, const NUM_SIZE: usize>()
+-> Simd<u32, LANE_SIZE>
 where
-    LaneCount<INP_LEN>: SupportedLaneCount,
+    LaneCount<LANE_SIZE>: SupportedLaneCount,
 {
-    let multipliers = Simd::from(std::array::from_fn(|i| 10u64.pow(i as u32))).reverse();
-    let mask = Simd::from(std::array::from_fn(
-        |i| if i < NUM_SIZE { u64::MAX } else { 0 },
-    ));
-    let line = Simd::<u8, INP_LEN>::load_or_default(line);
-    let digits = line - Simd::splat(b'0');
-    let digits: Simd<u64, INP_LEN> = digits.cast();
-    let digits = digits & mask;
-    (digits * multipliers).reduce_sum() / 10u64.pow((INP_LEN - NUM_SIZE) as u32)
+    let mut arr = [0; LANE_SIZE];
+    let mut i = 0;
+    while i < LANE_SIZE {
+        if i < NUM_SIZE {
+            arr[i] = 10u32.pow((NUM_SIZE - i - 1) as u32);
+        } else if i >= INP_LEN - NUM_SIZE && i < INP_LEN {
+            arr[i] = 10u32.pow((NUM_SIZE - (i - (INP_LEN - NUM_SIZE)) - 1) as u32);
+        }
+        i += 1;
+    }
+    Simd::from_array(arr)
 }
 
-fn simd_parse_end<const INP_LEN: usize, const GAP_LEN: usize>(line: &[u8; INP_LEN]) -> u64
+const fn get_masks<const LANE_SIZE: usize, const INP_LEN: usize, const NUM_SIZE: usize>()
+-> (Simd<u32, LANE_SIZE>, Simd<u32, LANE_SIZE>)
 where
-    LaneCount<INP_LEN>: SupportedLaneCount,
+    LaneCount<LANE_SIZE>: SupportedLaneCount,
 {
-    let multipliers = Simd::from(std::array::from_fn(|i| 10u64.pow(i as u32))).reverse();
-    let mask = Simd::from(std::array::from_fn(
-        |i| if i >= GAP_LEN { u64::MAX } else { 0 },
-    ));
-    let line = Simd::<u8, INP_LEN>::load_or_default(line);
+    let mut mask1 = [0; LANE_SIZE];
+    let mut mask2 = [0; LANE_SIZE];
+    let mut i = 0;
+    while i < LANE_SIZE {
+        if i < NUM_SIZE {
+            mask1[i] = u32::MAX;
+        } else if i >= INP_LEN - NUM_SIZE {
+            mask2[i] = u32::MAX;
+        }
+        i += 1;
+    }
+
+    (Simd::from_array(mask1), Simd::from_array(mask2))
+}
+
+#[target_feature(enable = "avx512f")]
+unsafe fn simd_parse_inner<const INP_LEN: usize, const NUM_SIZE: usize, const LANE_SIZE: usize>(
+    line: &[u8; INP_LEN],
+) -> (u64, u64)
+where
+    LaneCount<LANE_SIZE>: SupportedLaneCount,
+{
+    let multipliers = const { get_multipliers::<LANE_SIZE, INP_LEN, NUM_SIZE>() };
+    let (mask1, mask2) = const { get_masks::<LANE_SIZE, INP_LEN, NUM_SIZE>() };
+    let mut line_padded = [0u8; LANE_SIZE];
+    line_padded[..INP_LEN].copy_from_slice(line);
+    let line = line_padded;
+
+    let line = Simd::<u8, LANE_SIZE>::from_array(line);
     let digits = line - Simd::splat(b'0');
-    let digits: Simd<u64, INP_LEN> = digits.cast();
-    let digits = digits & mask;
-    (digits * multipliers).reduce_sum()
+    let digits_big: Simd<u32, LANE_SIZE> = digits.cast() * multipliers;
+    let num_left = digits_big & mask1;
+    let num_right = digits_big & mask2;
+    let left = num_left.reduce_sum();
+    let right = num_right.reduce_sum();
+    (left as u64, right as u64)
 }
 
 #[cfg(test)]
