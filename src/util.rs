@@ -6,11 +6,17 @@ pub trait FastParse: Sized {
 
     fn fast_parse<Bytes>(input: Bytes) -> Option<Self>
     where
-        Bytes: AsRef<[u8]>;
+        Bytes: AsRef<[u8]>,
+    {
+        Self::fast_parse_counted(input).map(|(res, _)| res)
+    }
     // Parses, assuming all of the given bytes are valid input without checking
     fn fast_parse_unchecked<Bytes>(input: Bytes) -> Self
     where
-        Bytes: AsRef<[u8]>;
+        Bytes: AsRef<[u8]>,
+    {
+        Self::fast_parse(input).unwrap()
+    }
 }
 
 macro_rules! uint_impl {
