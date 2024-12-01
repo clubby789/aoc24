@@ -3,7 +3,7 @@ use std::{
     simd::{LaneCount, Simd, SupportedLaneCount, num::SimdUint},
 };
 
-// 13.2us
+// 12.8us
 pub fn part1(input: &str) -> u64 {
     let line_length = memchr::memchr(b'\n', input.as_bytes()).unwrap();
     let lines = input.len() / line_length;
@@ -19,7 +19,7 @@ pub fn part1(input: &str) -> u64 {
     left.iter().zip(&right).map(|(l, r)| l.abs_diff(*r)).sum()
 }
 
-// 6.7us
+// 5.9us
 pub fn part2(input: &str) -> u64 {
     let mut num_counts = vec![0u16; 99999];
     let line_length = memchr::memchr(b'\n', input.as_bytes()).unwrap();
@@ -102,26 +102,6 @@ where
     Simd::from_array(arr)
 }
 
-const fn get_masks<const LANE_SIZE: usize, const INP_LEN: usize, const NUM_SIZE: usize>()
--> (Simd<u32, LANE_SIZE>, Simd<u32, LANE_SIZE>)
-where
-    LaneCount<LANE_SIZE>: SupportedLaneCount,
-{
-    let mut mask1 = [0; LANE_SIZE];
-    let mut mask2 = [0; LANE_SIZE];
-    let mut i = 0;
-    while i < LANE_SIZE {
-        if i < NUM_SIZE {
-            mask1[i] = u32::MAX;
-        } else if i >= INP_LEN - NUM_SIZE {
-            mask2[i] = u32::MAX;
-        }
-        i += 1;
-    }
-
-    (Simd::from_array(mask1), Simd::from_array(mask2))
-}
-
 #[target_feature(enable = "avx512f")]
 unsafe fn simd_parse_inner<const INP_LEN: usize, const NUM_SIZE: usize, const LANE_SIZE: usize>(
     line: &[u8; INP_LEN],
@@ -130,7 +110,6 @@ where
     LaneCount<LANE_SIZE>: SupportedLaneCount,
 {
     let multipliers = const { get_multipliers::<LANE_SIZE, INP_LEN, NUM_SIZE>() };
-    let (mask1, mask2) = const { get_masks::<LANE_SIZE, INP_LEN, NUM_SIZE>() };
     let mut line_padded = [0u8; LANE_SIZE];
     line_padded[..INP_LEN].copy_from_slice(line);
     let line = line_padded;
@@ -138,10 +117,8 @@ where
     let line = Simd::<u8, LANE_SIZE>::from_array(line);
     let digits = line - Simd::splat(b'0');
     let digits_big: Simd<u32, LANE_SIZE> = digits.cast() * multipliers;
-    let num_left = digits_big & mask1;
-    let num_right = digits_big & mask2;
-    let left = num_left.as_array().iter().take(NUM_SIZE).sum::<u32>() as u64;
-    let right = num_right
+    let left = digits_big.as_array().iter().take(NUM_SIZE).sum::<u32>() as u64;
+    let right = digits_big
         .as_array()
         .iter()
         .skip(INP_LEN - NUM_SIZE)
