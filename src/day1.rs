@@ -1,8 +1,10 @@
+use std::hint::assert_unchecked;
+
 use rustc_hash::FxHashMap;
 
 use crate::util::FastParse;
 
-// 12.8us
+// 12.1us
 pub fn part1(input: &str) -> u64 {
     let line_length = memchr::memchr(b'\n', input.as_bytes()).unwrap();
     let lines = input.len() / line_length;
@@ -18,7 +20,7 @@ pub fn part1(input: &str) -> u64 {
     left.iter().zip(&right).map(|(l, r)| l.abs_diff(*r)).sum()
 }
 
-// 9.6us
+// 9.4us
 pub fn part2(input: &str) -> u64 {
     #[derive(Default)]
     struct Num {
@@ -48,10 +50,20 @@ where
     let line_length = memchr::memchr(b'\n', input).unwrap();
     // Length of first column
     let first_col_len = memchr::memchr(b' ', &input[..line_length]).unwrap();
+    // SAFETY: `memchr` returns a value less than the length
+    unsafe { assert_unchecked(first_col_len < line_length) };
+
     // Offset from start to second column
     let second_col_offset = memchr::memrchr(b' ', &input[..line_length]).unwrap() + 1;
+    // SAFETY: `memchr` returns a value less than the length
+    unsafe { assert_unchecked(second_col_offset < line_length) };
+    assert!(second_col_offset > first_col_len);
+
     let second_col_len = line_length - second_col_offset;
+
     while !input.is_empty() {
+        assert!(input.len() > line_length);
+
         let num1 = u64::fast_parse_unchecked(&input[..first_col_len]);
         let num2 = u64::fast_parse_unchecked(&input[second_col_offset..][..second_col_len]);
         f(num1, num2);
