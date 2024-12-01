@@ -40,15 +40,16 @@ pub fn part2(input: &str) -> u64 {
         .sum()
 }
 
-fn for_each_line<F>(mut input: &str, mut f: F)
+fn for_each_line<F>(input: &str, mut f: F)
 where
     F: FnMut(u64, u64),
 {
-    let line_length = memchr::memchr(b'\n', input.as_bytes()).unwrap();
+    let mut input = input.as_bytes();
+    let line_length = memchr::memchr(b'\n', input).unwrap();
     // Length of first column
-    let first_col_len = memchr::memchr(b' ', input[..line_length].as_bytes()).unwrap();
+    let first_col_len = memchr::memchr(b' ', &input[..line_length]).unwrap();
     // Offset from start to second column
-    let second_col_offset = memchr::memrchr(b' ', input[..line_length].as_bytes()).unwrap() + 1;
+    let second_col_offset = memchr::memrchr(b' ', &input[..line_length]).unwrap() + 1;
     let second_col_len = line_length - second_col_offset;
     while !input.is_empty() {
         let num1 = u64::fast_parse_unchecked(&input[..first_col_len]);
