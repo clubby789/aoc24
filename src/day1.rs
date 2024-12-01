@@ -1,7 +1,5 @@
 use std::hint::assert_unchecked;
 
-use rustc_hash::FxHashMap;
-
 use crate::util::FastParse;
 
 // 12.1us
@@ -20,25 +18,20 @@ pub fn part1(input: &str) -> u64 {
     left.iter().zip(&right).map(|(l, r)| l.abs_diff(*r)).sum()
 }
 
-// 9.4us
+// 5.1us
 pub fn part2(input: &str) -> u64 {
-    #[derive(Default)]
-    struct Num {
-        count: u64,
-        appeared_left: bool,
-    }
-    let mut nums: FxHashMap<u64, Num> = FxHashMap::default();
+    let mut num_counts = vec![0u16; 99999];
     let line_length = memchr::memchr(b'\n', input.as_bytes()).unwrap();
-
     let lines = input.len() / line_length;
-    nums.reserve(lines);
+    let mut appeared = Vec::with_capacity(lines);
+
     for_each_line(input, |num1, num2| {
-        nums.entry(num1).or_default().appeared_left = true;
-        nums.entry(num2).or_default().count += 1;
+        appeared.push(num1);
+        num_counts[num2 as usize] += 1;
     });
-    nums.iter()
-        .filter(|(_, num)| num.appeared_left)
-        .map(|(val, num)| val * num.count)
+    appeared
+        .iter()
+        .map(|&num| num * num_counts[num as usize] as u64)
         .sum()
 }
 
