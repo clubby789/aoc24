@@ -22,7 +22,7 @@ pub fn part1() -> u64 {
     left.iter().zip(&right).map(|(l, r)| l.abs_diff(*r)).sum()
 }
 
-// 20.11us
+// 11.51us
 pub fn part2() -> u64 {
     #[derive(Default)]
     struct Num {
@@ -30,6 +30,8 @@ pub fn part2() -> u64 {
         appeared_left: bool,
     }
     let mut nums: FxHashMap<u64, Num> = FxHashMap::default();
+    // Divide total length by length of first line to preallocate
+    nums.reserve(INPUT.len() / memchr::memchr(b'\n', INPUT.as_bytes()).unwrap());
     let mut input = INPUT;
     while !input.is_empty() {
         let (num1, len) = u64::fast_parse(input).unwrap();
