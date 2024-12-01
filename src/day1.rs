@@ -1,13 +1,10 @@
-const INPUT: &str = include_str!("inputs/1.txt");
-const _: () = assert!(INPUT.as_bytes()[INPUT.len() - 1] == b'\n');
-
 use rustc_hash::FxHashMap;
 
 use crate::util::FastParse;
 
-// 25.2us
-pub fn part1() -> u64 {
-    let (mut left, mut right): (Vec<_>, Vec<_>) = INPUT
+// 26.8us
+pub fn part1(input: &str) -> u64 {
+    let (mut left, mut right): (Vec<_>, Vec<_>) = input
         .lines()
         .map(|l| {
             let (l, r) = l.split_once(char::is_whitespace).unwrap();
@@ -22,8 +19,8 @@ pub fn part1() -> u64 {
     left.iter().zip(&right).map(|(l, r)| l.abs_diff(*r)).sum()
 }
 
-// 11.51us
-pub fn part2() -> u64 {
+// 10.8us
+pub fn part2(mut input: &str) -> u64 {
     #[derive(Default)]
     struct Num {
         count: u64,
@@ -31,8 +28,8 @@ pub fn part2() -> u64 {
     }
     let mut nums: FxHashMap<u64, Num> = FxHashMap::default();
     // Divide total length by length of first line to preallocate
-    nums.reserve(INPUT.len() / memchr::memchr(b'\n', INPUT.as_bytes()).unwrap());
-    let mut input = INPUT;
+    nums.reserve(input.len() / memchr::memchr(b'\n', input.as_bytes()).unwrap());
+    debug_assert!(input.ends_with('\n'));
     while !input.is_empty() {
         let (num1, len) = u64::fast_parse(input).unwrap();
         input = &input[len..].trim_ascii_start();

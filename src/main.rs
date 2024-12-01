@@ -3,14 +3,14 @@ mod util;
 use seq_macro::seq;
 use std::time::{Duration, Instant};
 
-fn timeit<F, U>(f: F) -> (Duration, U)
+fn timeit<F, U>(f: F, input: &str) -> (Duration, U)
 where
-    F: Fn() -> U,
+    F: Fn(&str) -> U,
 {
     // run a few times to get an estimate of timing
     let now = Instant::now();
     for _ in 0..32 {
-        std::hint::black_box(f());
+        std::hint::black_box(f(input));
     }
     let initial_avg = now.elapsed() / 32;
 
@@ -18,14 +18,14 @@ where
 
     let now = Instant::now();
     for _ in 0..measure_loops {
-        std::hint::black_box(f());
+        std::hint::black_box(f(input));
     }
     let avg = now.elapsed() / measure_loops;
-    let ret = std::hint::black_box(f());
+    let ret = std::hint::black_box(f(input));
     (avg, ret)
 }
 
-type AocFn = fn() -> u64;
+type AocFn = fn(&str) -> u64;
 
 seq! {
     N in 1..=1 {
@@ -42,13 +42,14 @@ seq! {
 
 fn main() {
     let (f1, f2) = FUNCS.last().unwrap();
+    let input = std::fs::read_to_string(format!("inputs/{}.txt", FUNCS.len())).unwrap();
     if std::env::var("TIMEIT").is_ok() {
-        let (t1, res) = timeit(f1);
+        let (t1, res) = timeit(f1, &input);
         println!("Solved part 1 in {t1:?} - {res}");
-        let (t2, res) = timeit(f2);
+        let (t2, res) = timeit(f2, &input);
         println!("Solved part 2 in {t2:?} - {res}");
     } else {
-        println!("Part 1 - {}", f1());
-        println!("Part 2 - {}", f2());
+        println!("Part 1 - {}", f1(&input));
+        println!("Part 2 - {}", f2(&input));
     }
 }
