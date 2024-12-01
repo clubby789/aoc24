@@ -2,14 +2,16 @@ use rustc_hash::FxHashMap;
 
 use crate::util::FastParse;
 
-// 14.9us
+// 14.1us
 pub fn part1(mut input: &str) -> u64 {
-    let lines = input.len() / memchr::memchr(b'\n', input.as_bytes()).unwrap();
+    let line_length = memchr::memchr(b'\n', input.as_bytes()).unwrap();
+    let second_col_offset = memchr::memrchr(b' ', input[..line_length].as_bytes()).unwrap() + 1;
+    let lines = input.len() / line_length;
     let mut left = Vec::with_capacity(lines);
     let mut right = Vec::with_capacity(lines);
     while !input.is_empty() {
-        let (num1, len) = u64::fast_parse(input).unwrap();
-        input = &input[len..].trim_ascii_start();
+        let (num1, _) = u64::fast_parse(input).unwrap();
+        input = &input[second_col_offset..];
         left.push(num1);
         let (num2, len) = u64::fast_parse(input).unwrap();
         input = &input[len + 1..];
@@ -20,7 +22,7 @@ pub fn part1(mut input: &str) -> u64 {
     left.iter().zip(&right).map(|(l, r)| l.abs_diff(*r)).sum()
 }
 
-// 10.8us
+// 10.1us
 pub fn part2(mut input: &str) -> u64 {
     #[derive(Default)]
     struct Num {
@@ -28,12 +30,14 @@ pub fn part2(mut input: &str) -> u64 {
         appeared_left: bool,
     }
     let mut nums: FxHashMap<u64, Num> = FxHashMap::default();
-    // Divide total length by length of first line to preallocate
-    nums.reserve(input.len() / memchr::memchr(b'\n', input.as_bytes()).unwrap());
+    let line_length = memchr::memchr(b'\n', input.as_bytes()).unwrap();
+    let second_col_offset = memchr::memrchr(b' ', input[..line_length].as_bytes()).unwrap() + 1;
+    let lines = input.len() / line_length;
+    nums.reserve(lines);
     debug_assert!(input.ends_with('\n'));
     while !input.is_empty() {
-        let (num1, len) = u64::fast_parse(input).unwrap();
-        input = &input[len..].trim_ascii_start();
+        let (num1, _) = u64::fast_parse(input).unwrap();
+        input = &input[second_col_offset..];
         nums.entry(num1).or_default().appeared_left = true;
         let (num2, len) = u64::fast_parse(input).unwrap();
         input = &input[len + 1..];
