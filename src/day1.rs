@@ -12,8 +12,8 @@ pub fn part1() -> u64 {
             )
         })
         .unzip();
-    left.sort();
-    right.sort();
+    left.sort_unstable();
+    right.sort_unstable();
     left.iter().zip(&right).map(|(l, r)| l.abs_diff(*r)).sum()
 }
 
