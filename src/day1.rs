@@ -56,30 +56,20 @@ where
     while !input.is_empty() {
         assert!(input.len() > line_length);
 
-        let (num1, num2) = parse_line_simd(input, first_col_len, second_col_offset, line_length);
+        let (num1, num2) = parse_line_simd(&input[..line_length], first_col_len, second_col_offset);
         f(num1, num2);
         input = &input[line_length + 1..];
     }
 }
 
-fn parse_line_simd(
-    input: &[u8],
-    first_col_len: usize,
-    second_col_offset: usize,
-    line_length: usize,
-) -> (u64, u64) {
-    assert!(input.len() >= second_col_offset);
-    assert!(input.len() >= first_col_len);
-    assert!(input.len() >= line_length);
+fn parse_line_simd(line: &[u8], first_col_len: usize, second_col_offset: usize) -> (u64, u64) {
+    assert!(line.len() >= second_col_offset);
+    assert!(line.len() >= first_col_len);
 
     // SAFETY: Buy a better cpu :ferrisclueless:
-    match (first_col_len, second_col_offset, line_length) {
-        (5, 8, 13) => unsafe {
-            simd_parse_inner::<13, 5, 16>(input[..line_length].try_into().unwrap())
-        },
-        (1, 4, 5) => unsafe {
-            simd_parse_inner::<5, 1, 8>(input[..line_length].try_into().unwrap())
-        },
+    match (first_col_len, second_col_offset) {
+        (5, 8) => unsafe { simd_parse_inner::<13, 5, 16>(line.try_into().unwrap()) },
+        (1, 4) => unsafe { simd_parse_inner::<5, 1, 8>(line.try_into().unwrap()) },
         _ => unimplemented!(),
     }
 }
@@ -132,6 +122,6 @@ mod test {
     use super::*;
     #[test]
     fn simd() {
-        assert_eq!(parse_line_simd(b"01234   56789", 5, 8, 13), (1234, 56789));
+        assert_eq!(parse_line_simd(b"01234   56789", 5, 8), (1234, 56789));
     }
 }
