@@ -1,8 +1,9 @@
-use std::hint::assert_unchecked;
+use std::{
+    hint::assert_unchecked,
+    simd::{LaneCount, Simd, SupportedLaneCount, num::SimdUint},
+};
 
-use crate::util::FastParse;
-
-// 12.1us
+// 11.2us
 pub fn part1(input: &str) -> u64 {
     let line_length = memchr::memchr(b'\n', input.as_bytes()).unwrap();
     let lines = input.len() / line_length;
@@ -18,7 +19,7 @@ pub fn part1(input: &str) -> u64 {
     left.iter().zip(&right).map(|(l, r)| l.abs_diff(*r)).sum()
 }
 
-// 5.1us
+// 4.1us
 pub fn part2(input: &str) -> u64 {
     let mut num_counts = vec![0u16; 99999];
     let line_length = memchr::memchr(b'\n', input.as_bytes()).unwrap();
@@ -52,14 +53,73 @@ where
     unsafe { assert_unchecked(second_col_offset < line_length) };
     assert!(second_col_offset > first_col_len);
 
-    let second_col_len = line_length - second_col_offset;
-
     while !input.is_empty() {
         assert!(input.len() > line_length);
 
-        let num1 = u64::fast_parse_unchecked(&input[..first_col_len]);
-        let num2 = u64::fast_parse_unchecked(&input[second_col_offset..][..second_col_len]);
+        let (num1, num2) = parse_line_simd(input, first_col_len, second_col_offset, line_length);
         f(num1, num2);
         input = &input[line_length + 1..];
+    }
+}
+
+fn parse_line_simd(
+    input: &[u8],
+    first_col_len: usize,
+    second_col_offset: usize,
+    line_length: usize,
+) -> (u64, u64) {
+    assert!(input.len() >= second_col_offset);
+    assert!(input.len() >= first_col_len);
+    assert!(input.len() >= line_length);
+
+    match (first_col_len, second_col_offset, line_length) {
+        (5, 8, 13) => (
+            simd_parse_start::<8, 5>(input[..second_col_offset].try_into().unwrap()),
+            simd_parse_end::<8, 3>(input[first_col_len..line_length].try_into().unwrap()),
+        ),
+        (1, 4, 5) => (
+            simd_parse_start::<4, 1>(input[..second_col_offset].try_into().unwrap()),
+            simd_parse_end::<4, 3>(input[first_col_len..line_length].try_into().unwrap()),
+        ),
+        _ => unimplemented!(),
+    }
+}
+
+fn simd_parse_start<const INP_LEN: usize, const NUM_SIZE: usize>(line: &[u8; INP_LEN]) -> u64
+where
+    LaneCount<INP_LEN>: SupportedLaneCount,
+{
+    let multipliers = Simd::from(std::array::from_fn(|i| 10u64.pow(i as u32))).reverse();
+    let mask = Simd::from(std::array::from_fn(
+        |i| if i < NUM_SIZE { u64::MAX } else { 0 },
+    ));
+    let line = Simd::<u8, INP_LEN>::load_or_default(line);
+    let digits = line - Simd::splat(b'0');
+    let digits: Simd<u64, INP_LEN> = digits.cast();
+    let digits = digits & mask;
+    (digits * multipliers).reduce_sum() / 10u64.pow((INP_LEN - NUM_SIZE) as u32)
+}
+
+fn simd_parse_end<const INP_LEN: usize, const GAP_LEN: usize>(line: &[u8; INP_LEN]) -> u64
+where
+    LaneCount<INP_LEN>: SupportedLaneCount,
+{
+    let multipliers = Simd::from(std::array::from_fn(|i| 10u64.pow(i as u32))).reverse();
+    let mask = Simd::from(std::array::from_fn(
+        |i| if i >= GAP_LEN { u64::MAX } else { 0 },
+    ));
+    let line = Simd::<u8, INP_LEN>::load_or_default(line);
+    let digits = line - Simd::splat(b'0');
+    let digits: Simd<u64, INP_LEN> = digits.cast();
+    let digits = digits & mask;
+    (digits * multipliers).reduce_sum()
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    #[test]
+    fn simd() {
+        assert_eq!(parse_line_simd(b"01234   56789", 5, 8, 13), (1234, 56789));
     }
 }

@@ -1,3 +1,5 @@
+#![feature(portable_simd)]
+
 mod util;
 
 use seq_macro::seq;
