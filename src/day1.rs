@@ -2,7 +2,7 @@ use rustc_hash::FxHashMap;
 
 use crate::util::FastParse;
 
-// 12.9us
+// 12.8us
 pub fn part1(input: &str) -> u64 {
     let line_length = memchr::memchr(b'\n', input.as_bytes()).unwrap();
     let lines = input.len() / line_length;
