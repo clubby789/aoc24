@@ -3,7 +3,7 @@ use std::{
     simd::{LaneCount, Simd, SupportedLaneCount, num::SimdUint},
 };
 
-// 14.8us
+// 13.2us
 pub fn part1(input: &str) -> u64 {
     let line_length = memchr::memchr(b'\n', input.as_bytes()).unwrap();
     let lines = input.len() / line_length;
@@ -19,7 +19,7 @@ pub fn part1(input: &str) -> u64 {
     left.iter().zip(&right).map(|(l, r)| l.abs_diff(*r)).sum()
 }
 
-// 8.2us
+// 6.7us
 pub fn part2(input: &str) -> u64 {
     let mut num_counts = vec![0u16; 99999];
     let line_length = memchr::memchr(b'\n', input.as_bytes()).unwrap();
@@ -140,9 +140,14 @@ where
     let digits_big: Simd<u32, LANE_SIZE> = digits.cast() * multipliers;
     let num_left = digits_big & mask1;
     let num_right = digits_big & mask2;
-    let left = num_left.reduce_sum();
-    let right = num_right.reduce_sum();
-    (left as u64, right as u64)
+    let left = num_left.as_array().iter().take(NUM_SIZE).sum::<u32>() as u64;
+    let right = num_right
+        .as_array()
+        .iter()
+        .skip(INP_LEN - NUM_SIZE)
+        .sum::<u32>() as u64;
+
+    (left, right)
 }
 
 #[cfg(test)]
