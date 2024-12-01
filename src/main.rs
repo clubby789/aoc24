@@ -1,3 +1,5 @@
+mod util;
+
 use seq_macro::seq;
 use std::time::{Duration, Instant};
 
@@ -50,4 +52,3 @@ fn main() {
         println!("Part 2 - {}", f2());
     }
 }
-

@@ -1,4 +1,5 @@
 const INPUT: &str = include_str!("inputs/1.txt");
+use crate::util::FastParse;
 
 pub fn part1() -> u64 {
     let (mut left, mut right): (Vec<_>, Vec<_>) = INPUT
@@ -6,8 +7,8 @@ pub fn part1() -> u64 {
         .map(|l| {
             let (l, r) = l.split_once(char::is_whitespace).unwrap();
             (
-                l.trim_ascii().parse::<u64>().unwrap(),
-                r.trim_ascii().parse::<u64>().unwrap(),
+                u64::fast_parse(l).unwrap().0,
+                u64::fast_parse(r.trim_ascii_start()).unwrap().0,
             )
         })
         .unzip();
@@ -22,8 +23,8 @@ pub fn part2() -> u64 {
         .map(|l| {
             let (l, r) = l.split_once(char::is_whitespace).unwrap();
             (
-                l.trim_ascii().parse::<u64>().unwrap(),
-                r.trim_ascii().parse::<u64>().unwrap(),
+                u64::fast_parse(l).unwrap().0,
+                u64::fast_parse(r.trim_ascii_start()).unwrap().0,
             )
         })
         .unzip();
