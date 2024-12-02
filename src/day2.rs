@@ -17,11 +17,11 @@ pub fn part1(input: &str) -> u64 {
     count
 }
 
-// 26.2us
+// 24.7us
 pub fn part2(input: &str) -> u64 {
     let mut input = input.as_bytes();
     let mut count = 0;
-    let mut numbers = Vec::with_capacity(16);
+    let mut numbers = [0; 8];
 
     while !input.is_empty() {
         let (next_input, result) = check_line_valid(input);
@@ -34,9 +34,12 @@ pub fn part2(input: &str) -> u64 {
                         .split_once('\n')
                         .unwrap()
                 };
-                numbers.truncate(0);
-                numbers.extend(line.split_ascii_whitespace().map(u64::fast_parse_unchecked));
-                if check_sequence_valid_damped(&mut numbers, idx) {
+                let mut i = 0;
+                for num in line.split_ascii_whitespace().map(u8::fast_parse_unchecked) {
+                    numbers[i] = num;
+                    i += 1;
+                }
+                if check_sequence_valid_damped(&mut numbers[..i], idx) {
                     count += 1;
                 }
             }
@@ -93,20 +96,20 @@ fn check_line_valid(mut input: &[u8]) -> (&[u8], Result<(), usize>) {
     }
 }
 
-#[cold]
-#[inline(never)]
-fn check_sequence_valid_damped(nums: &mut Vec<u64>, idx: usize) -> bool {
+fn check_sequence_valid_damped(nums: &mut [u8], idx: usize) -> bool {
     for i in idx.saturating_sub(1)..=(idx + 1) {
-        let old = nums.remove(i);
-        if check_sequence_valid(&nums).is_ok() {
+        let old = nums[i];
+        nums.copy_within(i + 1.., i);
+        if check_sequence_valid(&nums[..nums.len() - 1]).is_ok() {
             return true;
         }
-        nums.insert(i, old);
+        nums.copy_within(i..nums.len() - 2, i + 1);
+        nums[i] = old;
     }
     false
 }
 
-fn check_sequence_valid(nums: &[u64]) -> Result<(), usize> {
+fn check_sequence_valid(nums: &[u8]) -> Result<(), usize> {
     let direction = nums[1].cmp(&nums[0]);
     for i in 0..nums.len() - 1 {
         let n1 = nums[i];
