@@ -50,7 +50,7 @@ pub fn part1(input: &str) -> u64 {
     count
 }
 
-// 38.6us
+// 38.0us
 pub fn part2(input: &str) -> u64 {
     input
         .lines()
@@ -60,15 +60,8 @@ pub fn part2(input: &str) -> u64 {
             match check_sequence_valid(&nums) {
                 Ok(_) => true,
                 Err(idx) => {
-                    // Push and pop from the same vec to retain the storage
-                    for i in idx.saturating_sub(2)..(idx + 2) {
-                        let old = nums.remove(i);
-                        if check_sequence_valid(&nums).is_ok() {
-                            return true;
-                        }
-                        nums.insert(i, old);
-                    }
-                    false
+                    // Outline as rarely called
+                    check_sequence_valid_damped(nums, idx)
                 }
             }
         })
@@ -86,6 +79,18 @@ fn check_sequence_valid(nums: &[u64]) -> Result<(), usize> {
         }
     }
     Ok(())
+}
+
+#[inline(never)]
+fn check_sequence_valid_damped(mut nums: Vec<u64>, idx: usize) -> bool {
+    for i in idx.saturating_sub(2)..(idx + 2) {
+        let old = nums.remove(i);
+        if check_sequence_valid(&nums).is_ok() {
+            return true;
+        }
+        nums.insert(i, old);
+    }
+    false
 }
 
 fn for_each_num_on_line<F: FnMut(u8) -> bool>(mut input: &[u8], mut f: F) -> (&[u8], bool) {
