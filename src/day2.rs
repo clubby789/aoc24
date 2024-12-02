@@ -17,10 +17,11 @@ pub fn part1(input: &str) -> u64 {
     count
 }
 
-// 30.2us
+// 26.2us
 pub fn part2(input: &str) -> u64 {
     let mut input = input.as_bytes();
     let mut count = 0;
+    let mut numbers = Vec::with_capacity(16);
 
     while !input.is_empty() {
         let (next_input, result) = check_line_valid(input);
@@ -33,9 +34,9 @@ pub fn part2(input: &str) -> u64 {
                         .split_once('\n')
                         .unwrap()
                 };
-                let mut numbers = Vec::with_capacity(line.len() / 2);
+                numbers.truncate(0);
                 numbers.extend(line.split_ascii_whitespace().map(u64::fast_parse_unchecked));
-                if check_sequence_valid_damped(numbers, idx) {
+                if check_sequence_valid_damped(&mut numbers, idx) {
                     count += 1;
                 }
             }
@@ -94,7 +95,7 @@ fn check_line_valid(mut input: &[u8]) -> (&[u8], Result<(), usize>) {
 
 #[cold]
 #[inline(never)]
-fn check_sequence_valid_damped(mut nums: Vec<u64>, idx: usize) -> bool {
+fn check_sequence_valid_damped(nums: &mut Vec<u64>, idx: usize) -> bool {
     for i in idx.saturating_sub(2)..(idx + 2) {
         let old = nums.remove(i);
         if check_sequence_valid(&nums).is_ok() {
