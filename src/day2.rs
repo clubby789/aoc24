@@ -1,45 +1,47 @@
+use std::cmp::Ordering;
+
 use crate::util::FastParse;
 
-// 8.5us
+// 7.8us
 pub fn part1(input: &str) -> u64 {
     let mut input = input.as_bytes();
     let mut count = 0;
 
-    let mut prev: Option<u8> = None;
-    let mut direction = None;
+    #[derive(Default)]
+    enum State {
+        #[default]
+        New,
+        First(u8),
+        InProgress(Ordering, u8),
+    }
+
     while !input.is_empty() {
-        let done;
-        (input, done) = for_each_num_on_line(input, |num| {
-            if let Some(prev_val) = prev {
-                if !matches!(prev_val.abs_diff(num), 1..=3) {
-                    input = &input[memchr::memchr(b'\n', input).unwrap() + 1..];
-                    prev = None;
-                    direction = None;
-                    false
-                } else if let Some(direction_val) = direction {
-                    if direction_val != num.cmp(&prev_val) {
-                        input = &input[memchr::memchr(b'\n', input).unwrap() + 1..];
-                        prev = None;
-                        direction = None;
-                        false
-                    } else {
-                        prev = Some(num);
-                       true
-                    }
-                } else {
-                    prev = Some(num);
-                    direction = Some(num.cmp(&prev_val));
-                    true
-                }
-            } else {
-                prev = Some(num);
+        let mut state = State::default();
+        let ok;
+        (input, ok) = for_each_num_on_line(input, |num| match state {
+            State::New => {
+                state = State::First(num);
                 true
+            }
+            State::First(prev) => {
+                if matches!(num.abs_diff(prev), 1..=3) {
+                    state = State::InProgress(num.cmp(&prev), num);
+                    true
+                } else {
+                    false
+                }
+            }
+            State::InProgress(direction, ref mut prev) => {
+                if matches!(num.abs_diff(*prev), 1..=3) && num.cmp(&prev) == direction {
+                    *prev = num;
+                    true
+                } else {
+                    false
+                }
             }
         });
 
-        prev = None;
-        direction = None;
-        if done {
+        if ok {
             count += 1;
         } else {
             input = &input[memchr::memchr(b'\n', input).unwrap() + 1..];
@@ -59,7 +61,7 @@ pub fn part2(input: &str) -> u64 {
                 Ok(_) => true,
                 Err(idx) => {
                     // Push and pop from the same vec to retain the storage
-                    for i in idx.saturating_sub(2)..(idx+2) {
+                    for i in idx.saturating_sub(2)..(idx + 2) {
                         let old = nums.remove(i);
                         if check_sequence_valid(&nums).is_ok() {
                             return true;
