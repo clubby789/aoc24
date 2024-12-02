@@ -1,15 +1,53 @@
 use crate::util::FastParse;
 
-// 32.8us
+// 8.5us
 pub fn part1(input: &str) -> u64 {
-    input
-        .lines()
-        .filter(|line| {
-            let mut nums = Vec::with_capacity(line.len() / 2);
-            nums.extend(line.split_ascii_whitespace().map(u64::fast_parse_unchecked));
-            check_sequence_valid(&nums).is_ok()
-        })
-        .count() as _
+    let mut input = input.as_bytes();
+    let mut count = 0;
+
+    let mut prev: Option<u8> = None;
+    let mut direction = None;
+
+    loop {
+        let (num, last, rest) = match input {
+            [] => break,
+            [hi, b' ', rest @ ..] => (hi - b'0', false, rest),
+            [hi, lo, b' ', rest @ ..] => ((hi - b'0') * 10 + lo - b'0', false, rest),
+            [hi, b'\n', rest @ ..] => (hi - b'0', true, rest),
+            [hi, lo, b'\n', rest @ ..] => ((hi - b'0') * 10 + lo - b'0', true, rest),
+            _ => unreachable!("{:?}", input),
+        };
+
+        if let Some(prev_val) = prev {
+            if !matches!(prev_val.abs_diff(num), 1..=3) {
+                input = &input[memchr::memchr(b'\n', input).unwrap()+1..];
+                prev = None;
+                direction = None;
+                continue;
+            } else if let Some(direction_val) = direction {
+                if direction_val != num.cmp(&prev_val) {
+                    input = &input[memchr::memchr(b'\n', input).unwrap()+1..];
+                    prev = None;
+                    direction = None;
+                    continue;
+                } else {
+                    prev = Some(num);
+                }
+            } else {
+                prev = Some(num);
+                direction = Some(num.cmp(&prev_val));
+            }
+        } else {
+            prev = Some(num);
+        };
+        input = rest;
+        if last {
+            count += 1;
+            prev = None;
+            direction = None;
+        }
+    }
+    count
 }
 
 // 45.0us
