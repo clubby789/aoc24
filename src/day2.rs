@@ -50,7 +50,7 @@ pub fn part1(input: &str) -> u64 {
     count
 }
 
-// 38.0us
+// 37.9us
 pub fn part2(input: &str) -> u64 {
     input
         .lines()
@@ -81,6 +81,7 @@ fn check_sequence_valid(nums: &[u64]) -> Result<(), usize> {
     Ok(())
 }
 
+#[cold]
 #[inline(never)]
 fn check_sequence_valid_damped(mut nums: Vec<u64>, idx: usize) -> bool {
     for i in idx.saturating_sub(2)..(idx + 2) {
