@@ -12,7 +12,7 @@ pub fn part1(input: &str) -> u64 {
         .count() as _
 }
 
-// 62.6us
+// 56.0us
 pub fn part2(input: &str) -> u64 {
     input
         .lines()
@@ -22,12 +22,14 @@ pub fn part2(input: &str) -> u64 {
             if check_sequence_valid(&nums) {
                 true
             } else {
+                // Push and pop from the same vec to retain the storage
+                let mut check = nums.clone();
                 for i in 0..nums.len() {
-                    let mut check = nums.clone();
-                    check.remove(i);
+                    let old = check.remove(i);
                     if check_sequence_valid(&check) {
                         return true;
                     }
+                    check.insert(i, old);
                 }
                 false
             }
