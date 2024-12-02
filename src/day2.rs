@@ -96,7 +96,7 @@ fn check_line_valid(mut input: &[u8]) -> (&[u8], Result<(), usize>) {
 #[cold]
 #[inline(never)]
 fn check_sequence_valid_damped(nums: &mut Vec<u64>, idx: usize) -> bool {
-    for i in idx.saturating_sub(2)..(idx + 2) {
+    for i in idx.saturating_sub(1)..=(idx + 1) {
         let old = nums.remove(i);
         if check_sequence_valid(&nums).is_ok() {
             return true;
