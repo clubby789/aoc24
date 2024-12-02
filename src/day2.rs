@@ -48,7 +48,7 @@ pub fn part1(input: &str) -> u64 {
     count
 }
 
-// 39.1us
+// 38.6us
 pub fn part2(input: &str) -> u64 {
     input
         .lines()
@@ -59,7 +59,7 @@ pub fn part2(input: &str) -> u64 {
                 Ok(_) => true,
                 Err(idx) => {
                     // Push and pop from the same vec to retain the storage
-                    for i in idx.saturating_sub(2)..(idx + 2).min(nums.len()) {
+                    for i in idx.saturating_sub(2)..(idx+2) {
                         let old = nums.remove(i);
                         if check_sequence_valid(&nums).is_ok() {
                             return true;
