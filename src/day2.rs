@@ -1,26 +1,28 @@
-// 45.3us
+// 31.4.3us
 pub fn part1(input: &str) -> u64 {
     input
         .lines()
         .filter(|line| {
-            let nums = line
-                .split_ascii_whitespace()
-                .map(|num| num.parse::<u64>().ok().unwrap())
-                .collect::<Vec<_>>();
+            let mut nums = Vec::with_capacity(line.len() / 2);
+            nums.extend(
+                line.split_ascii_whitespace()
+                    .map(|num| num.parse::<u64>().ok().unwrap()),
+            );
             check_sequence_valid(&nums)
         })
         .count() as _
 }
 
-// 79.6us
+// 65.6us
 pub fn part2(input: &str) -> u64 {
     input
         .lines()
         .filter(|line| {
-            let nums = line
-                .split_ascii_whitespace()
-                .map(|num| num.parse::<u64>().ok().unwrap())
-                .collect::<Vec<_>>();
+            let mut nums = Vec::with_capacity(line.len() / 2);
+            nums.extend(
+                line.split_ascii_whitespace()
+                    .map(|num| num.parse::<u64>().ok().unwrap()),
+            );
             if check_sequence_valid(&nums) {
                 true
             } else {
