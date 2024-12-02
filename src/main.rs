@@ -31,7 +31,7 @@ where
 type AocFn = fn(&str) -> u64;
 
 seq! {
-    N in 1..=1 {
+    N in 1..=2 {
         #(
             mod day~N;
         )*
