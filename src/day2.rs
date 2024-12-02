@@ -1,28 +1,24 @@
-// 31.4.3us
+use crate::util::FastParse;
+
+// 31.4us
 pub fn part1(input: &str) -> u64 {
     input
         .lines()
         .filter(|line| {
             let mut nums = Vec::with_capacity(line.len() / 2);
-            nums.extend(
-                line.split_ascii_whitespace()
-                    .map(|num| num.parse::<u64>().ok().unwrap()),
-            );
+            nums.extend(line.split_ascii_whitespace().map(u64::fast_parse_unchecked));
             check_sequence_valid(&nums)
         })
         .count() as _
 }
 
-// 65.6us
+// 62.6us
 pub fn part2(input: &str) -> u64 {
     input
         .lines()
         .filter(|line| {
             let mut nums = Vec::with_capacity(line.len() / 2);
-            nums.extend(
-                line.split_ascii_whitespace()
-                    .map(|num| num.parse::<u64>().ok().unwrap()),
-            );
+            nums.extend(line.split_ascii_whitespace().map(u64::fast_parse_unchecked));
             if check_sequence_valid(&nums) {
                 true
             } else {
