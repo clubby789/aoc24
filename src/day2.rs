@@ -1,7 +1,5 @@
 use std::cmp::Ordering;
 
-use crate::util::FastParse;
-
 // 8.5us
 pub fn part1(input: &str) -> u64 {
     let mut input = input.as_bytes();
@@ -17,7 +15,7 @@ pub fn part1(input: &str) -> u64 {
     count
 }
 
-// 24.7us
+// 19.8s
 pub fn part2(input: &str) -> u64 {
     let mut input = input.as_bytes();
     let mut count = 0;
@@ -28,17 +26,13 @@ pub fn part2(input: &str) -> u64 {
         match result {
             Ok(_) => count += 1,
             Err(idx) => {
-                // SAFETY: `input` came from a UTF-8 string. `check_line_valid` splits off only ASCII characters
-                let (line, _) = unsafe {
-                    std::str::from_utf8_unchecked(input)
-                        .split_once('\n')
-                        .unwrap()
-                };
                 let mut i = 0;
-                for num in line.split_ascii_whitespace().map(u8::fast_parse_unchecked) {
-                    numbers[i] = num;
+                for_each_num_on_line(input, |n| {
+                    numbers[i] = n;
                     i += 1;
-                }
+                    true
+                });
+
                 if check_sequence_valid_damped(&mut numbers[..i], idx) {
                     count += 1;
                 }
