@@ -2,7 +2,7 @@ use std::cmp::Ordering;
 
 use crate::util::FastParse;
 
-// 7.8us
+// 7.5us
 pub fn part1(input: &str) -> u64 {
     let mut input = input.as_bytes();
     let mut count = 0;
@@ -32,7 +32,7 @@ pub fn part1(input: &str) -> u64 {
                 }
             }
             State::InProgress(direction, ref mut prev) => {
-                if matches!(num.abs_diff(*prev), 1..=3) && num.cmp(&prev) == direction {
+                if matches!(num.abs_diff(*prev), 1..=3) && num.cmp(prev) == direction {
                     *prev = num;
                     true
                 } else {
@@ -50,7 +50,7 @@ pub fn part1(input: &str) -> u64 {
     count
 }
 
-// 37.9us
+// 40.0us
 pub fn part2(input: &str) -> u64 {
     input
         .lines()
