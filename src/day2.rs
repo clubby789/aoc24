@@ -7,44 +7,42 @@ pub fn part1(input: &str) -> u64 {
 
     let mut prev: Option<u8> = None;
     let mut direction = None;
-
-    loop {
-        let (num, last, rest) = match input {
-            [] => break,
-            [hi, b' ', rest @ ..] => (hi - b'0', false, rest),
-            [hi, lo, b' ', rest @ ..] => ((hi - b'0') * 10 + lo - b'0', false, rest),
-            [hi, b'\n', rest @ ..] => (hi - b'0', true, rest),
-            [hi, lo, b'\n', rest @ ..] => ((hi - b'0') * 10 + lo - b'0', true, rest),
-            _ => unreachable!("{:?}", input),
-        };
-
-        if let Some(prev_val) = prev {
-            if !matches!(prev_val.abs_diff(num), 1..=3) {
-                input = &input[memchr::memchr(b'\n', input).unwrap()+1..];
-                prev = None;
-                direction = None;
-                continue;
-            } else if let Some(direction_val) = direction {
-                if direction_val != num.cmp(&prev_val) {
-                    input = &input[memchr::memchr(b'\n', input).unwrap()+1..];
+    while !input.is_empty() {
+        let done;
+        (input, done) = for_each_num_on_line(input, |num| {
+            if let Some(prev_val) = prev {
+                if !matches!(prev_val.abs_diff(num), 1..=3) {
+                    input = &input[memchr::memchr(b'\n', input).unwrap() + 1..];
                     prev = None;
                     direction = None;
-                    continue;
+                    false
+                } else if let Some(direction_val) = direction {
+                    if direction_val != num.cmp(&prev_val) {
+                        input = &input[memchr::memchr(b'\n', input).unwrap() + 1..];
+                        prev = None;
+                        direction = None;
+                        false
+                    } else {
+                        prev = Some(num);
+                       true
+                    }
                 } else {
                     prev = Some(num);
+                    direction = Some(num.cmp(&prev_val));
+                    true
                 }
             } else {
                 prev = Some(num);
-                direction = Some(num.cmp(&prev_val));
+                true
             }
-        } else {
-            prev = Some(num);
-        };
-        input = rest;
-        if last {
+        });
+
+        prev = None;
+        direction = None;
+        if done {
             count += 1;
-            prev = None;
-            direction = None;
+        } else {
+            input = &input[memchr::memchr(b'\n', input).unwrap() + 1..];
         }
     }
     count
@@ -87,4 +85,25 @@ fn check_sequence_valid(nums: &[u64]) -> Result<(), usize> {
         }
     }
     Ok(())
+}
+
+fn for_each_num_on_line<F: FnMut(u8) -> bool>(mut input: &[u8], mut f: F) -> (&[u8], bool) {
+    loop {
+        let (num, last, rest) = match input {
+            [hi, b' ', rest @ ..] => (hi - b'0', false, rest),
+            [hi, lo, b' ', rest @ ..] => ((hi - b'0') * 10 + lo - b'0', false, rest),
+            [hi, b'\n', rest @ ..] => (hi - b'0', true, rest),
+            [hi, lo, b'\n', rest @ ..] => ((hi - b'0') * 10 + lo - b'0', true, rest),
+            _ => unreachable!("{:?}", input),
+        };
+
+        input = rest;
+        if f(num) {
+            if last {
+                return (input, true);
+            }
+        } else {
+            return (input, false);
+        }
+    }
 }
