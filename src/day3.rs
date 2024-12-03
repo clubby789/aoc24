@@ -4,7 +4,8 @@ use memchr::memmem;
 pub fn part1(input: &str) -> u64 {
     let mut input = input.as_bytes();
     let mut total = 0;
-    let finder = memmem::Finder::new("mul(");
+    let finder = memmem::Finder::new(b"mul(");
+
     while let Some(start) = finder.find(input) {
         input = &input[start + 4..];
         if let Some((x, y, rest)) = parse_mul_body(input) {
@@ -15,14 +16,15 @@ pub fn part1(input: &str) -> u64 {
     total
 }
 
-// 12.9us
+// 12.1us
 pub fn part2(input: &str) -> u64 {
     let mut input = input.as_bytes();
     let mut total = 0;
     let mut enabled = true;
-    let mul_finder = memmem::Finder::new("mul(");
-    let enable_finder = memmem::FinderRev::new("do()");
-    let disable_finder = memmem::FinderRev::new("don't()");
+    let mul_finder = memmem::Finder::new(b"mul(");
+    let enable_finder = memmem::FinderRev::new(b"do()");
+    let disable_finder = memmem::FinderRev::new(b"don't()");
+
     while let Some(start) = mul_finder.find(input) {
         let to_check = &input[..start];
         let last_enable = enable_finder.rfind(to_check);
