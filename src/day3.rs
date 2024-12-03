@@ -90,7 +90,7 @@ fn parse_mul_body(input: &[u8]) -> (u64, &[u8]) {
         ($input:ident, $([$($i:ident)+,$($t:ident)+])+) => {
             match $input {
                 $(
-                    [$($i @ b'0'..=b'9'),+, b',', $($t @ b'0'..=b'9'),+, b')', rest @ ..] => {
+                    [$($i @ b'0'..=u8::MAX),+, b',', $($t @ b'0'..=u8::MAX),+, b')', rest @ ..] => {
                         (parse_ascii!($($i),+) * parse_ascii!($($t),+), rest)
                     }
                 )+
