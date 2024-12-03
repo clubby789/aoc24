@@ -86,94 +86,29 @@ macro_rules! parse_ascii {
 }
 
 fn parse_mul_body(input: &[u8]) -> (u64, &[u8]) {
-    let (val, rest) = match input {
-        // (XXX,YYY)
-        [
-            x1 @ b'0'..=b'9',
-            x2 @ b'0'..=b'9',
-            x3 @ b'0'..=b'9',
-            b',',
-            y1 @ b'0'..=b'9',
-            y2 @ b'0'..=b'9',
-            y3 @ b'0'..=b'9',
-            b')',
-            rest @ ..,
-        ] => (parse_ascii!(x1, x2, x3) * parse_ascii!(y1, y2, y3), rest),
-        // (XXX,YY)
-        [
-            x1 @ b'0'..=b'9',
-            x2 @ b'0'..=b'9',
-            x3 @ b'0'..=b'9',
-            b',',
-            y1 @ b'0'..=b'9',
-            y2 @ b'0'..=b'9',
-            b')',
-            rest @ ..,
-        ] => (parse_ascii!(x1, x2, x3) * parse_ascii!(y1, y2), rest),
-        // (XXX,Y)
-        [
-            x1 @ b'0'..=b'9',
-            x2 @ b'0'..=b'9',
-            x3 @ b'0'..=b'9',
-            b',',
-            y1 @ b'0'..=b'9',
-            b')',
-            rest @ ..,
-        ] => (parse_ascii!(x1, x2, x3) * parse_ascii!(y1), rest),
-        // (XX,YYY)
-        [
-            x1 @ b'0'..=b'9',
-            x2 @ b'0'..=b'9',
-            b',',
-            y1 @ b'0'..=b'9',
-            y2 @ b'0'..=b'9',
-            y3 @ b'0'..=b'9',
-            b')',
-            rest @ ..,
-        ] => (parse_ascii!(x1, x2) * parse_ascii!(y1, y2, y3), rest),
-        // (XX,YY)
-        [
-            x1 @ b'0'..=b'9',
-            x2 @ b'0'..=b'9',
-            b',',
-            y1 @ b'0'..=b'9',
-            y2 @ b'0'..=b'9',
-            b')',
-            rest @ ..,
-        ] => (parse_ascii!(x1, x2) * parse_ascii!(y1, y2), rest),
-        // (XX,Y)
-        [
-            x1 @ b'0'..=b'9',
-            x2 @ b'0'..=b'9',
-            b',',
-            y1 @ b'0'..=b'9',
-            b')',
-            rest @ ..,
-        ] => (parse_ascii!(x1, x2) * parse_ascii!(y1), rest),
-        // (X,YYY)
-        [
-            x1 @ b'0'..=b'9',
-            b',',
-            y1 @ b'0'..=b'9',
-            y2 @ b'0'..=b'9',
-            y3 @ b'0'..=b'9',
-            b')',
-            rest @ ..,
-        ] => (parse_ascii!(x1) * parse_ascii!(y1, y2, y3), rest),
-        // (X,YY)
-        [
-            x1 @ b'0'..=b'9',
-            b',',
-            y1 @ b'0'..=b'9',
-            y2 @ b'0'..=b'9',
-            b')',
-            rest @ ..,
-        ] => (parse_ascii!(x1) * parse_ascii!(y1, y2), rest),
-        // (X,Y)
-        [x1 @ b'0'..=b'9', b',', y1 @ b'0'..=b'9', b')', rest @ ..] => {
-            (parse_ascii!(x1) * parse_ascii!(y1), rest)
-        }
-        _ => return (0, input),
+    macro_rules! cases {
+        ($input:ident, $([$($i:ident)+,$($t:ident)+])+) => {
+            match $input {
+                $(
+                    [$($i @ b'0'..=b'9'),+, b',', $($t @ b'0'..=b'9'),+, b')', rest @ ..] => {
+                        (parse_ascii!($($i),+) * parse_ascii!($($t),+), rest)
+                    }
+                )+
+                _ => (0, $input),
+            }
+
+        };
+    }
+    let (val, rest) = cases! {input,
+        [a b c , d e f]
+        [a b c , d e]
+        [a b c , d]
+        [a b , d e f]
+        [a b , d e]
+        [a b , d]
+        [a , d e f]
+        [a , d e]
+        [a , d]
     };
     (val, rest)
 }
