@@ -1,8 +1,11 @@
-// 25.9us
+use memchr::memmem;
+
+// 5.5us
 pub fn part1(input: &str) -> u64 {
     let mut input = input.as_bytes();
     let mut total = 0;
-    while let Some(start) = memchr::memmem::find(input, b"mul(") {
+    let finder = memmem::Finder::new("mul(");
+    while let Some(start) = finder.find(input) {
         input = &input[start + 4..];
         if let Some((x, y, rest)) = parse_mul_body(input) {
             total += x * y;
@@ -12,15 +15,18 @@ pub fn part1(input: &str) -> u64 {
     total
 }
 
-// 37.2us
+// 12.9us
 pub fn part2(input: &str) -> u64 {
     let mut input = input.as_bytes();
     let mut total = 0;
     let mut enabled = true;
-    while let Some(start) = memchr::memmem::find(input, b"mul(") {
+    let mul_finder = memmem::Finder::new("mul(");
+    let enable_finder = memmem::FinderRev::new("do()");
+    let disable_finder = memmem::FinderRev::new("don't()");
+    while let Some(start) = mul_finder.find(input) {
         let to_check = &input[..start];
-        let last_enable = memchr::memmem::rfind(to_check, b"do()");
-        let last_disable = memchr::memmem::rfind(to_check, b"don't()");
+        let last_enable = enable_finder.rfind(to_check);
+        let last_disable = disable_finder.rfind(to_check);
         if enabled {
             // If there is a disable, and there is no enable OR the last enable is before the last disable:
             if last_disable.is_some_and(|last_disable_pos| {
