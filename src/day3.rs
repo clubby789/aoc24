@@ -1,4 +1,4 @@
-use memchr::memmem;
+use memchr::arch::all::rabinkarp;
 
 // 5.1us
 pub fn part1(input: &str) -> u64 {
@@ -24,8 +24,8 @@ pub fn part2(input: &str) -> u64 {
     let mut input = input.as_bytes();
     let mut total = 0;
     let mut enabled = true;
-    let enable_finder = memmem::FinderRev::new(b"do()");
-    let disable_finder = memmem::FinderRev::new(b"don't()");
+    let enable_finder = rabinkarp::FinderRev::new(b"do()");
+    let disable_finder = rabinkarp::FinderRev::new(b"don't()");
 
     while let Some(start) = memchr::memchr(b'm', input) {
         let to_check = &input[..start];
@@ -49,12 +49,12 @@ pub fn part2(input: &str) -> u64 {
 #[inline]
 fn enabled_after_block(
     mut enabled: bool,
-    enable_finder: &memmem::FinderRev,
-    disable_finder: &memmem::FinderRev,
+    enable_finder: &rabinkarp::FinderRev,
+    disable_finder: &rabinkarp::FinderRev,
     block: &[u8],
 ) -> bool {
-    let last_enable = enable_finder.rfind(block);
-    let last_disable = disable_finder.rfind(block);
+    let last_enable = enable_finder.rfind(block, b"do()");
+    let last_disable = disable_finder.rfind(block, b"don't()");
     if enabled {
         // If there is a disable, and there is no enable OR the last enable is before the last disable:
         if last_disable.is_some_and(|last_disable_pos| {
