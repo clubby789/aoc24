@@ -1,6 +1,6 @@
 use memchr::arch::all::rabinkarp;
 
-// 5.1us
+// 4.6us
 pub fn part1(input: &str) -> u64 {
     let mut input = input.as_bytes();
     let mut total = 0;
@@ -19,7 +19,7 @@ pub fn part1(input: &str) -> u64 {
     total
 }
 
-// 12.0us
+// 11.9us
 pub fn part2(input: &str) -> u64 {
     let mut input = input.as_bytes();
     let mut total = 0;
