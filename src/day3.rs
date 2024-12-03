@@ -1,4 +1,4 @@
-// 26.4us
+// 25.9us
 pub fn part1(input: &str) -> u64 {
     let mut input = input.as_bytes();
     let mut total = 0;
@@ -12,7 +12,7 @@ pub fn part1(input: &str) -> u64 {
     total
 }
 
-// 39.0us
+// 37.2us
 pub fn part2(input: &str) -> u64 {
     let mut input = input.as_bytes();
     let mut total = 0;
@@ -61,7 +61,7 @@ macro_rules! parse_ascii {
 
 // Given bytes after a `mul(`, return the X and Y values (if valid) and the bytes after the mul
 fn parse_mul_body(input: &[u8]) -> Option<(u64, u64, &[u8])> {
-    let (x, y) = match input {
+    let (x, y, rest) = match input {
         // (XXX,YYY)
         [
             x1 @ b'0'..=b'9',
@@ -72,8 +72,8 @@ fn parse_mul_body(input: &[u8]) -> Option<(u64, u64, &[u8])> {
             y2 @ b'0'..=b'9',
             y3 @ b'0'..=b'9',
             b')',
-            ..,
-        ] => (parse_ascii!(x1, x2, x3), parse_ascii!(y1, y2, y3)),
+            rest @ ..,
+        ] => (parse_ascii!(x1, x2, x3), parse_ascii!(y1, y2, y3), rest),
         // (XXX,YY)
         [
             x1 @ b'0'..=b'9',
@@ -83,8 +83,8 @@ fn parse_mul_body(input: &[u8]) -> Option<(u64, u64, &[u8])> {
             y1 @ b'0'..=b'9',
             y2 @ b'0'..=b'9',
             b')',
-            ..,
-        ] => (parse_ascii!(x1, x2, x3), parse_ascii!(y1, y2)),
+            rest @ ..,
+        ] => (parse_ascii!(x1, x2, x3), parse_ascii!(y1, y2), rest),
         // (XXX,Y)
         [
             x1 @ b'0'..=b'9',
@@ -93,8 +93,8 @@ fn parse_mul_body(input: &[u8]) -> Option<(u64, u64, &[u8])> {
             b',',
             y1 @ b'0'..=b'9',
             b')',
-            ..,
-        ] => (parse_ascii!(x1, x2, x3), parse_ascii!(y1)),
+            rest @ ..,
+        ] => (parse_ascii!(x1, x2, x3), parse_ascii!(y1), rest),
         // (XX,YYY)
         [
             x1 @ b'0'..=b'9',
@@ -104,8 +104,8 @@ fn parse_mul_body(input: &[u8]) -> Option<(u64, u64, &[u8])> {
             y2 @ b'0'..=b'9',
             y3 @ b'0'..=b'9',
             b')',
-            ..,
-        ] => (parse_ascii!(x1, x2), parse_ascii!(y1, y2, y3)),
+            rest @ ..,
+        ] => (parse_ascii!(x1, x2), parse_ascii!(y1, y2, y3), rest),
         // (XX,YY)
         [
             x1 @ b'0'..=b'9',
@@ -114,8 +114,8 @@ fn parse_mul_body(input: &[u8]) -> Option<(u64, u64, &[u8])> {
             y1 @ b'0'..=b'9',
             y2 @ b'0'..=b'9',
             b')',
-            ..,
-        ] => (parse_ascii!(x1, x2), parse_ascii!(y1, y2)),
+            rest @ ..,
+        ] => (parse_ascii!(x1, x2), parse_ascii!(y1, y2), rest),
         // (XX,Y)
         [
             x1 @ b'0'..=b'9',
@@ -123,8 +123,8 @@ fn parse_mul_body(input: &[u8]) -> Option<(u64, u64, &[u8])> {
             b',',
             y1 @ b'0'..=b'9',
             b')',
-            ..,
-        ] => (parse_ascii!(x1, x2), parse_ascii!(y1)),
+            rest @ ..,
+        ] => (parse_ascii!(x1, x2), parse_ascii!(y1), rest),
         // (X,YYY)
         [
             x1 @ b'0'..=b'9',
@@ -133,8 +133,8 @@ fn parse_mul_body(input: &[u8]) -> Option<(u64, u64, &[u8])> {
             y2 @ b'0'..=b'9',
             y3 @ b'0'..=b'9',
             b')',
-            ..,
-        ] => (parse_ascii!(x1), parse_ascii!(y1, y2, y3)),
+            rest @ ..,
+        ] => (parse_ascii!(x1), parse_ascii!(y1, y2, y3), rest),
         // (X,YY)
         [
             x1 @ b'0'..=b'9',
@@ -142,14 +142,13 @@ fn parse_mul_body(input: &[u8]) -> Option<(u64, u64, &[u8])> {
             y1 @ b'0'..=b'9',
             y2 @ b'0'..=b'9',
             b')',
-            ..,
-        ] => (parse_ascii!(x1), parse_ascii!(y1, y2)),
+            rest @ ..,
+        ] => (parse_ascii!(x1), parse_ascii!(y1, y2), rest),
         // (X,Y)
-        [x1 @ b'0'..=b'9', b',', y1 @ b'0'..=b'9', b')', ..] => {
-            (parse_ascii!(x1), parse_ascii!(y1))
+        [x1 @ b'0'..=b'9', b',', y1 @ b'0'..=b'9', b')', rest @ ..] => {
+            (parse_ascii!(x1), parse_ascii!(y1), rest)
         }
         _ => return None,
     };
-    // TODO: return the `..` part
-    Some((x, y, input))
+    Some((x, y, rest))
 }
