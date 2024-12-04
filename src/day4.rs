@@ -1,4 +1,4 @@
-// 28.4us
+// 26.0us
 pub fn part1(input: &str) -> u64 {
     let input = input.as_bytes();
     let line_length = input.iter().position(|b| *b == b'\n').unwrap() + 1;
@@ -27,10 +27,9 @@ pub fn part1(input: &str) -> u64 {
             offsets
                 .into_iter()
                 .filter_map(|offset| {
-                    let mut pos = i;
-                    for letter in b"MAS" {
-                        pos = pos.checked_add_signed(offset)?;
-                        if input.get(pos)? != letter {
+                    // Iterate backward as if the last letter is OOB we can fail fast
+                    for (n, letter) in b"MAS".iter().enumerate().rev() {
+                        if input.get(i.checked_add_signed(offset * (n + 1) as isize)?)? != letter {
                             return None;
                         }
                     }
@@ -65,11 +64,11 @@ pub fn part2(input: &str) -> u64 {
             let up_left = *input.get(i.checked_add_signed(offsets[3])?)?;
             match (up_left, down_right) {
                 (b'M', b'S') | (b'S', b'M') => (),
-                _ => return None
+                _ => return None,
             }
             match (up_right, down_left) {
                 (b'M', b'S') | (b'S', b'M') => (),
-                _ => return None
+                _ => return None,
             }
             Some(())
         })
