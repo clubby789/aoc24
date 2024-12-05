@@ -1,22 +1,9 @@
 // 1.0ms
 pub fn part1(input: &str) -> u64 {
     let (ordering_rules, updates) = input.split_once("\n\n").unwrap();
-    let orderings: Vec<(u64, u64)> = ordering_rules
-        .split('\n')
-        .map(|line| {
-            let (a, b) = line.split_once('|').unwrap();
-            (a.parse().unwrap(), b.parse().unwrap())
-        })
-        .collect();
+    let orderings = parse_orderings(ordering_rules);
 
-    updates
-        .trim_ascii_end()
-        .split('\n')
-        .map(|line| {
-            line.split(',')
-                .map(|n| n.parse::<u64>().unwrap())
-                .collect::<Vec<_>>()
-        })
+    parse_updates(updates)
         .filter(|nums| {
             orderings.iter().all(|(first, last)| {
                 if let Some((first_pos, last_pos)) = Option::zip(
@@ -36,22 +23,9 @@ pub fn part1(input: &str) -> u64 {
 // 5.85ms
 pub fn part2(input: &str) -> u64 {
     let (ordering_rules, updates) = input.split_once("\n\n").unwrap();
-    let orderings: Vec<(u64, u64)> = ordering_rules
-        .split('\n')
-        .map(|line| {
-            let (a, b) = line.split_once('|').unwrap();
-            (a.parse().unwrap(), b.parse().unwrap())
-        })
-        .collect();
+    let orderings = parse_orderings(ordering_rules);
 
-    updates
-        .trim_ascii_end()
-        .split('\n')
-        .map(|line| {
-            line.split(',')
-                .map(|n| n.parse::<u64>().unwrap())
-                .collect::<Vec<_>>()
-        })
+    parse_updates(updates)
         .filter_map(|mut nums| {
             let mut any_incorrect = false;
 
@@ -77,4 +51,22 @@ pub fn part2(input: &str) -> u64 {
         })
         .map(|nums| (&nums)[nums.len() / 2])
         .sum()
+}
+
+fn parse_orderings(input: &str) -> Vec<(u64, u64)> {
+    input
+        .split('\n')
+        .map(|line| {
+            let (a, b) = line.split_once('|').unwrap();
+            (a.parse().unwrap(), b.parse().unwrap())
+        })
+        .collect()
+}
+
+fn parse_updates(input: &str) -> impl Iterator<Item = Vec<u64>> {
+    input.trim_ascii_end().split('\n').map(|line| {
+        line.split(',')
+            .map(|n| n.parse::<u64>().unwrap())
+            .collect::<Vec<_>>()
+    })
 }
