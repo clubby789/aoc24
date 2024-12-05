@@ -1,4 +1,4 @@
-// 113.4us
+// 88.7us
 pub fn part1(input: &str) -> u64 {
     let (ordering_rules, updates) = input.split_once("\n\n").unwrap();
     let orderings = parse_orderings(ordering_rules);
@@ -15,11 +15,11 @@ pub fn part1(input: &str) -> u64 {
                 }
             })
         })
-        .map(|nums| nums.mid())
+        .map(|nums| nums.mid() as u64)
         .sum()
 }
 
-// 579.6us
+// 483.8us
 pub fn part2(input: &str) -> u64 {
     let (ordering_rules, updates) = input.split_once("\n\n").unwrap();
     let orderings = parse_orderings(ordering_rules);
@@ -47,53 +47,61 @@ pub fn part2(input: &str) -> u64 {
 
             any_incorrect.then_some(nums)
         })
-        .map(|nums| nums.mid())
+        .map(|nums| nums.mid() as u64)
         .sum()
 }
 
-fn parse_orderings(input: &str) -> Vec<(u64, u64)> {
+fn parse_orderings(input: &str) -> Vec<(u8, u8)> {
     input
         .split('\n')
-        .map(|line| {
-            let (a, b) = line.split_once('|').unwrap();
-            (a.parse().unwrap(), b.parse().unwrap())
+        .map(|line| match line.as_bytes() {
+            &[a1, a2, p, b1, b2] => {
+                debug_assert_eq!(p, b'|');
+                (
+                    (a1 - b'0') * 10 + (a2 - b'0'),
+                    (b1 - b'0') * 10 + (b2 - b'0'),
+                )
+            }
+            _ => unreachable!(),
         })
         .collect()
 }
 
-fn parse_updates(input: &str) -> impl Iterator<Item = UpdatesMap> {
+fn parse_updates(input: &str) -> impl Iterator<Item = UpdatesMap> + '_ {
     input.trim_ascii_end().split('\n').map(|line| {
-        let mut map = UpdatesMap([usize::MAX; 99]);
+        let mut map = UpdatesMap([u8::MAX; 256]);
         for (pos, n) in line.split(',').enumerate() {
             let n = n.parse::<usize>().unwrap();
-            map.0[n] = pos;
+            map.0[n] = pos as u8;
         }
         map
     })
 }
 
 // Maps the numbers 1->99 to their positions in the update list
-struct UpdatesMap([usize; 99]);
+struct UpdatesMap([u8; 256]);
 
 impl UpdatesMap {
-    pub fn position(&self, val: &u64) -> Option<usize> {
-        Some(self.0[*val as usize]).filter(|v| *v != usize::MAX)
+    pub fn position(&self, val: &u8) -> Option<usize> {
+        Some(self.0[*val as usize])
+            .filter(|v| *v != u8::MAX)
+            .map(|v| v as usize)
     }
 
-    pub fn swap(&mut self, a_val: u64, b_val: u64) {
+    pub fn swap(&mut self, a_val: u8, b_val: u8) {
         let old_a = self.position(&a_val).unwrap();
         let old_b = self.position(&b_val).unwrap();
-        self.0[a_val as usize] = old_b;
-        self.0[b_val as usize] = old_a;
+        self.0[a_val as usize] = old_b as u8;
+        self.0[b_val as usize] = old_a as u8;
     }
 
-    pub fn mid(&self) -> u64 {
+    pub fn mid(&self) -> u8 {
         let mut numbers: Vec<_> = self
             .0
             .iter()
             .enumerate()
-            .filter(|(_, v)| **v != usize::MAX)
-            .map(|(num, pos)| (*pos, num as u64))
+            .filter(|(_, v)| **v != u8::MAX)
+            .map(|(num, pos)| (*pos, num as u8))
             .collect();
         numbers.sort_by_key(|(pos, _)| *pos);
         numbers[numbers.len() / 2].1
