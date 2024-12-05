@@ -1,4 +1,4 @@
-// 88.7us
+// 72.5s
 pub fn part1(input: &str) -> u64 {
     let (ordering_rules, updates) = input.split_once("\n\n").unwrap();
     let orderings = parse_orderings(ordering_rules);
@@ -68,12 +68,18 @@ fn parse_orderings(input: &str) -> Vec<(u8, u8)> {
 }
 
 fn parse_updates(input: &str) -> impl Iterator<Item = UpdatesMap> + '_ {
-    input.trim_ascii_end().split('\n').map(|line| {
+    let input = input.as_bytes();
+    let mut start = 0;
+    memchr::memchr_iter(b'\n', input).map(move |end| {
         let mut map = UpdatesMap([u8::MAX; 256]);
-        for (pos, n) in line.split(',').enumerate() {
-            let n = n.parse::<usize>().unwrap();
-            map.0[n] = pos as u8;
+        for (pos, chunk) in input[start..end].chunks(3).enumerate() {
+            assert!(chunk.len() >= 2);
+            debug_assert!(chunk[0].is_ascii_digit(), "`{:?}`", chunk[0] as char);
+            debug_assert!(chunk[1].is_ascii_digit(), "`{:?}`", chunk[1] as char);
+            let num = (chunk[0] - b'0') as usize * 10 + (chunk[1] - b'0') as usize;
+            map.0[num] = pos as u8;
         }
+        start = end + 1;
         map
     })
 }
