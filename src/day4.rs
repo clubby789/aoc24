@@ -40,7 +40,7 @@ pub fn part1(input: &str) -> u64 {
         .sum::<usize>() as u64
 }
 
-// 15.1us
+// 10.7us
 pub fn part2(input: &str) -> u64 {
     let input = input.as_bytes();
     let line_length = input.iter().position(|b| *b == b'\n').unwrap() + 1;
@@ -62,15 +62,12 @@ pub fn part2(input: &str) -> u64 {
             let down_right = *input.get(i.checked_add_signed(offsets[1])?)?;
             let down_left = *input.get(i.checked_add_signed(offsets[2])?)?;
             let up_left = *input.get(i.checked_add_signed(offsets[3])?)?;
-            match (up_left, down_right) {
-                (b'M', b'S') | (b'S', b'M') => (),
-                _ => return None,
+
+            if up_left ^ down_right == b'S' ^ b'M' && up_right ^ down_left == b'S' ^ b'M' {
+                Some(())
+            } else {
+                None
             }
-            match (up_right, down_left) {
-                (b'M', b'S') | (b'S', b'M') => (),
-                _ => return None,
-            }
-            Some(())
         })
         .count() as u64
 }
