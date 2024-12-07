@@ -16,29 +16,41 @@ fn solve<const ALLOW_CONCAT: bool>(input: &str) -> u64 {
             let line = &input[start..end];
             start = end + 1;
 
-            let colon = memchr::memchr(b':', line).unwrap();
-            let (test_num, nums) = (&line[..colon], &line[colon + 1..]);
-            let mut arr = [0; 16];
-
-            for (i, v) in nums.split(|&b| b == b' ').enumerate() {
-                arr[i] = v.iter().fold(0, |acc, v| acc * 10 + (v - b'0') as u16);
-            }
-
-            let test_num = test_num
-                .iter()
-                .fold(0, |acc, v| acc * 10 + (v - b'0') as u64);
-            let mut bitset = u16x16::from_array(arr);
-            // Shift the elements until the last number is at the end
-            while bitset.as_array()[15] == 0 {
-                bitset = bitset.rotate_elements_right::<1>();
-            }
+            let (test_num, bitset) = parse_line(line);
             if is_valid_rev::<ALLOW_CONCAT>(test_num, bitset) {
-                Some(test_num as u64)
+                Some(test_num)
             } else {
                 None
             }
         })
         .sum()
+}
+
+fn parse_line(mut line: &[u8]) -> (u64, u16x16) {
+    let mut test_num = 0;
+    let mut arr = [0; 16];
+    while line[0] != b':' {
+        test_num *= 10;
+        test_num += (line[0] - b'0') as u64;
+        line = &line[1..];
+    }
+    line = &line[1..];
+    let mut i = 0;
+    for &b in line.iter() {
+        if b == b' ' {
+            i += 1;
+        } else {
+            arr[i] *= 10;
+            arr[i] += (b - b'0') as u16;
+        }
+    }
+
+    let mut bitset = u16x16::from_array(arr);
+    // Shift the elements until the last number is at the end
+    while bitset.as_array()[15] == 0 {
+        bitset = bitset.rotate_elements_right::<1>();
+    }
+    (test_num, bitset)
 }
 
 fn is_valid_rev<const ALLOW_CONCAT: bool>(current: u64, nums: u16x16) -> bool {
