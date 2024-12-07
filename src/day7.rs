@@ -9,17 +9,23 @@ pub fn part2(input: &str) -> u64 {
 }
 
 fn solve<const ALLOW_CONCAT: bool>(input: &str) -> u64 {
-    input
-        .lines()
-        .filter_map(|line| {
-            let (test_num, nums) = line.split_once(": ").unwrap();
+    let mut start = 0;
+    let input = input.as_bytes();
+    memchr::memchr_iter(b'\n', input)
+        .filter_map(|end| {
+            let line = &input[start..end];
+            start = end + 1;
+
+            let colon = memchr::memchr(b':', line).unwrap();
+            let (test_num, nums) = (&line[..colon], &line[colon + 1..]);
             let mut arr = [0; 16];
-            for (i, v) in nums.split(' ').enumerate() {
-                arr[i] = v.bytes().fold(0, |acc, v| acc * 10 + (v - b'0') as u16);
+
+            for (i, v) in nums.split(|&b| b == b' ').enumerate() {
+                arr[i] = v.iter().fold(0, |acc, v| acc * 10 + (v - b'0') as u16);
             }
 
             let test_num = test_num
-                .bytes()
+                .iter()
                 .fold(0, |acc, v| acc * 10 + (v - b'0') as u64);
             let mut bitset = u16x16::from_array(arr);
             // Shift the elements until the last number is at the end
