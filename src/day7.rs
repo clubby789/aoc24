@@ -10,15 +10,12 @@ fn solve<const ALLOW_CONCAT: bool>(input: &str) -> u64 {
     input
         .lines()
         .filter_map(|line| {
-            let (test_num, nums) = line.split_once(": ").unwrap();
+            // Leaves a trailing space in `nums`, which the parser requires
+            let (test_num, nums) = line.split_once(":").unwrap();
             let test_num = test_num
                 .bytes()
                 .fold(0, |acc, v| acc * 10 + (v - b'0') as u64);
-            let nums = nums
-                .split(' ')
-                .map(|n| n.bytes().fold(0, |acc, v| acc * 10 + (v - b'0') as u16) as u64)
-                .collect::<Vec<_>>();
-            if is_valid_rev::<ALLOW_CONCAT>(test_num, &nums) {
+            if is_valid_rev::<ALLOW_CONCAT>(test_num, &nums.as_bytes()) {
                 Some(test_num as u64)
             } else {
                 None
@@ -27,9 +24,18 @@ fn solve<const ALLOW_CONCAT: bool>(input: &str) -> u64 {
         .sum()
 }
 
-fn is_valid_rev<const ALLOW_CONCAT: bool>(current: u64, nums: &[u64]) -> bool {
-    let Some((&last, rest)) = nums.split_last() else {
-        return current == 0;
+fn is_valid_rev<const ALLOW_CONCAT: bool>(current: u64, nums: &[u8]) -> bool {
+    debug_assert!(nums.is_empty() || nums[0] == b' ');
+    let (rest, last) = match nums {
+        [rest @ .., b' ', a] => (rest, (*a - b'0') as u64),
+        [rest @ .., b' ', a, b] => (rest, (*a - b'0') as u64 * 10 + (*b - b'0') as u64),
+        [rest @ .., b' ', a, b, c] => (
+            rest,
+            (*a - b'0') as u64 * 100 + (*b - b'0') as u64 * 10 + (*c - b'0') as u64,
+        ),
+        _ => {
+            return current == 0;
+        }
     };
 
     if let Some(subbed) = current.checked_sub(last) {
