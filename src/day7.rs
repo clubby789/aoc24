@@ -18,6 +18,9 @@ pub fn part1(input: &str) -> u64 {
 }
 
 fn is_valid<const ALLOW_CONCAT: bool>(target: u64, current: u64, remaining: &[u64]) -> bool {
+    if current > target {
+        return false;
+    }
     let Some((&next, rest)) = remaining.split_first() else {
         return target == current;
     };
