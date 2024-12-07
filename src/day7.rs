@@ -55,5 +55,12 @@ fn is_valid_rev<const ALLOW_CONCAT: bool>(current: u64, nums: &[u64]) -> bool {
 }
 
 fn ndigits(val: u64) -> u32 {
-    val.ilog10() + 1
+    match val {
+        0..=9 => 1,
+        10..=99 => 2,
+        _ => {
+            debug_assert!(matches!(val, 100..=999));
+            3
+        }
+    }
 }
