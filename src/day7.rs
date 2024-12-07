@@ -77,9 +77,7 @@ fn is_valid_rev<const ALLOW_CONCAT: bool>(current: u64, nums: u16x16, remaining:
 
     let (div, rem) = (current / last, current % last);
     if rem == 0 {
-        if is_valid_rev::<ALLOW_CONCAT>(div, rest, remaining - 1) {
-            return true;
-        }
+        return is_valid_rev::<ALLOW_CONCAT>(div, rest, remaining - 1);
     }
     false
 }
