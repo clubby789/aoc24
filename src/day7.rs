@@ -1,3 +1,5 @@
+use std::simd::u16x16;
+
 pub fn part1(input: &str) -> u64 {
     solve::<false>(input)
 }
@@ -10,12 +12,21 @@ fn solve<const ALLOW_CONCAT: bool>(input: &str) -> u64 {
     input
         .lines()
         .filter_map(|line| {
-            // Leaves a trailing space in `nums`, which the parser requires
-            let (test_num, nums) = line.split_once(":").unwrap();
+            let (test_num, nums) = line.split_once(": ").unwrap();
+            let mut arr = [0; 16];
+            for (i, v) in nums.split(' ').enumerate() {
+                arr[i] = v.bytes().fold(0, |acc, v| acc * 10 + (v - b'0') as u16);
+            }
+
             let test_num = test_num
                 .bytes()
                 .fold(0, |acc, v| acc * 10 + (v - b'0') as u64);
-            if is_valid_rev::<ALLOW_CONCAT>(test_num, &nums.as_bytes()) {
+            let mut bitset = u16x16::from_array(arr);
+            // Shift the elements until the last number is at the end
+            while bitset.as_array()[15] == 0 {
+                bitset = bitset.rotate_elements_right::<1>();
+            }
+            if is_valid_rev::<ALLOW_CONCAT>(test_num, bitset) {
                 Some(test_num as u64)
             } else {
                 None
@@ -24,20 +35,13 @@ fn solve<const ALLOW_CONCAT: bool>(input: &str) -> u64 {
         .sum()
 }
 
-fn is_valid_rev<const ALLOW_CONCAT: bool>(current: u64, nums: &[u8]) -> bool {
-    debug_assert!(nums.is_empty() || nums[0] == b' ');
-    let (rest, last) = match nums {
-        [rest @ .., b' ', a] => (rest, (*a - b'0') as u64),
-        [rest @ .., b' ', a, b] => (rest, (*a - b'0') as u64 * 10 + (*b - b'0') as u64),
-        [rest @ .., b' ', a, b, c] => (
-            rest,
-            (*a - b'0') as u64 * 100 + (*b - b'0') as u64 * 10 + (*c - b'0') as u64,
-        ),
-        _ => {
-            return current == 0;
-        }
-    };
+fn is_valid_rev<const ALLOW_CONCAT: bool>(current: u64, nums: u16x16) -> bool {
+    if nums == u16x16::splat(0) {
+        return current == 0;
+    }
+    let (last, rest) = shift(nums);
 
+    let last = last as u64;
     if let Some(subbed) = current.checked_sub(last) {
         if is_valid_rev::<ALLOW_CONCAT>(subbed, rest) {
             return true;
@@ -71,4 +75,26 @@ fn ndigits(val: u64) -> u32 {
             3
         }
     }
+}
+
+fn shift(set: u16x16) -> (u16, u16x16) {
+    #[cfg(debug_assertions)]
+    {
+        let mut zeroes = true;
+        let set = set.as_array();
+        assert_eq!(set[0], 0);
+        for s in set {
+            if zeroes {
+                if *s != 0 {
+                    zeroes = false;
+                }
+            } else {
+                debug_assert_ne!(*s, 0);
+            }
+        }
+    }
+    let val = set.as_array()[15];
+    let mut rotated = set.rotate_elements_right::<1>();
+    rotated.as_mut_array()[0] = 0;
+    (val, rotated)
 }
