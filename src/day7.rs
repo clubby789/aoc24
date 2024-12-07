@@ -16,8 +16,8 @@ fn solve<const ALLOW_CONCAT: bool>(input: &str) -> u64 {
             let line = &input[start..end];
             start = end + 1;
 
-            let (test_num, bitset) = parse_line(line);
-            if is_valid_rev::<ALLOW_CONCAT>(test_num, bitset) {
+            let (test_num, bitset, len) = parse_line(line);
+            if is_valid_rev::<ALLOW_CONCAT>(test_num, bitset, len) {
                 Some(test_num)
             } else {
                 None
@@ -26,7 +26,7 @@ fn solve<const ALLOW_CONCAT: bool>(input: &str) -> u64 {
         .sum()
 }
 
-fn parse_line(mut line: &[u8]) -> (u64, u16x16) {
+fn parse_line(mut line: &[u8]) -> (u64, u16x16, usize) {
     let mut test_num = 0;
     let mut arr = [0; 16];
     while line[0] != b':' {
@@ -50,18 +50,18 @@ fn parse_line(mut line: &[u8]) -> (u64, u16x16) {
     while bitset.as_array()[15] == 0 {
         bitset = bitset.rotate_elements_right::<1>();
     }
-    (test_num, bitset)
+    (test_num, bitset, i)
 }
 
-fn is_valid_rev<const ALLOW_CONCAT: bool>(current: u64, nums: u16x16) -> bool {
-    if nums == u16x16::splat(0) {
+fn is_valid_rev<const ALLOW_CONCAT: bool>(current: u64, nums: u16x16, remaining: usize) -> bool {
+    if remaining == 0 {
         return current == 0;
     }
     let (last, rest) = shift(nums);
 
     let last = last as u64;
     if let Some(subbed) = current.checked_sub(last) {
-        if is_valid_rev::<ALLOW_CONCAT>(subbed, rest) {
+        if is_valid_rev::<ALLOW_CONCAT>(subbed, rest, remaining - 1) {
             return true;
         }
     }
@@ -69,7 +69,7 @@ fn is_valid_rev<const ALLOW_CONCAT: bool>(current: u64, nums: u16x16) -> bool {
     if ALLOW_CONCAT && !(last > current) {
         let divisor = 10u64.pow(ndigits(last));
         if (current - last) % divisor == 0 {
-            if is_valid_rev::<ALLOW_CONCAT>((current - last) / divisor, rest) {
+            if is_valid_rev::<ALLOW_CONCAT>((current - last) / divisor, rest, remaining - 1) {
                 return true;
             }
         }
@@ -77,7 +77,7 @@ fn is_valid_rev<const ALLOW_CONCAT: bool>(current: u64, nums: u16x16) -> bool {
 
     let (div, rem) = (current / last, current % last);
     if rem == 0 {
-        if is_valid_rev::<ALLOW_CONCAT>(div, rest) {
+        if is_valid_rev::<ALLOW_CONCAT>(div, rest, remaining - 1) {
             return true;
         }
     }
@@ -96,23 +96,7 @@ fn ndigits(val: u64) -> u32 {
 }
 
 fn shift(set: u16x16) -> (u16, u16x16) {
-    #[cfg(debug_assertions)]
-    {
-        let mut zeroes = true;
-        let set = set.as_array();
-        assert_eq!(set[0], 0);
-        for s in set {
-            if zeroes {
-                if *s != 0 {
-                    zeroes = false;
-                }
-            } else {
-                debug_assert_ne!(*s, 0);
-            }
-        }
-    }
     let val = set.as_array()[15];
-    let mut rotated = set.rotate_elements_right::<1>();
-    rotated.as_mut_array()[0] = 0;
+    let rotated = set.rotate_elements_right::<1>();
     (val, rotated)
 }
