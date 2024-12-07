@@ -66,11 +66,13 @@ fn is_valid_rev<const ALLOW_CONCAT: bool>(current: u64, nums: u16x16, remaining:
         }
     }
 
-    if ALLOW_CONCAT && !(last > current) {
-        let divisor = 10u64.pow(ndigits(last));
-        if (current - last) % divisor == 0 {
-            if is_valid_rev::<ALLOW_CONCAT>((current - last) / divisor, rest, remaining - 1) {
-                return true;
+    if ALLOW_CONCAT {
+        if let Some(subbed) = current.checked_sub(last) {
+            let divisor = 10u64.pow(ndigits(last));
+            if subbed % divisor == 0 {
+                if is_valid_rev::<ALLOW_CONCAT>(subbed / divisor, rest, remaining - 1) {
+                    return true;
+                }
             }
         }
     }
