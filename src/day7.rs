@@ -6,29 +6,6 @@ pub fn part2(input: &str) -> u64 {
     solve::<true>(input)
 }
 
-fn is_valid<const ALLOW_CONCAT: bool>(target: u64, current: u64, remaining: &[u64]) -> bool {
-    if current > target {
-        return false;
-    }
-    let Some((&next, rest)) = remaining.split_first() else {
-        return target == current;
-    };
-    if is_valid::<ALLOW_CONCAT>(target, current + next, rest)
-        || is_valid::<ALLOW_CONCAT>(target, current * next, rest)
-    {
-        true
-    } else if ALLOW_CONCAT {
-        let mut pow = 10;
-        while next > pow {
-            pow *= 10;
-        }
-        let new = current * pow + next;
-        is_valid::<ALLOW_CONCAT>(target, new, rest)
-    } else {
-        false
-    }
-}
-
 fn solve<const ALLOW_CONCAT: bool>(input: &str) -> u64 {
     input
         .lines()
@@ -39,11 +16,44 @@ fn solve<const ALLOW_CONCAT: bool>(input: &str) -> u64 {
                 .split(' ')
                 .map(|n| n.parse::<u64>().unwrap())
                 .collect::<Vec<_>>();
-            if is_valid::<ALLOW_CONCAT>(test_num, 0, &nums) {
+            if is_valid_rev::<ALLOW_CONCAT>(test_num, &nums) {
                 Some(test_num)
             } else {
                 None
             }
         })
         .sum()
+}
+
+fn is_valid_rev<const ALLOW_CONCAT: bool>(current: u64, nums: &[u64]) -> bool {
+    let Some((&last, rest)) = nums.split_last() else {
+        return current == 0;
+    };
+
+    if let Some(subbed) = current.checked_sub(last) {
+        if is_valid_rev::<ALLOW_CONCAT>(subbed, rest) {
+            return true;
+        }
+    }
+
+    if ALLOW_CONCAT && !(last > current) {
+        let divisor = 10u64.pow(ndigits(last));
+        if (current - last) % divisor == 0 {
+            if is_valid_rev::<ALLOW_CONCAT>((current - last) / divisor, rest) {
+                return true;
+            }
+        }
+    }
+
+    let (div, rem) = (current / last, current % last);
+    if rem == 0 {
+        if is_valid_rev::<ALLOW_CONCAT>(div, rest) {
+            return true;
+        }
+    }
+    false
+}
+
+fn ndigits(val: u64) -> u32 {
+    val.ilog10() + 1
 }
