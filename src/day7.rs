@@ -1,20 +1,9 @@
 pub fn part1(input: &str) -> u64 {
-    input
-        .lines()
-        .filter_map(|line| {
-            let (test_num, nums) = line.split_once(": ").unwrap();
-            let test_num = test_num.parse::<u64>().unwrap();
-            let nums = nums
-                .split(' ')
-                .map(|n| n.parse::<u64>().unwrap())
-                .collect::<Vec<_>>();
-            if is_valid::<false>(test_num, 0, &nums) {
-                Some(test_num)
-            } else {
-                None
-            }
-        })
-        .sum()
+    solve::<false>(input)
+}
+
+pub fn part2(input: &str) -> u64 {
+    solve::<true>(input)
 }
 
 fn is_valid<const ALLOW_CONCAT: bool>(target: u64, current: u64, remaining: &[u64]) -> bool {
@@ -40,7 +29,7 @@ fn is_valid<const ALLOW_CONCAT: bool>(target: u64, current: u64, remaining: &[u6
     }
 }
 
-pub fn part2(input: &str) -> u64 {
+fn solve<const ALLOW_CONCAT: bool>(input: &str) -> u64 {
     input
         .lines()
         .filter_map(|line| {
@@ -50,7 +39,7 @@ pub fn part2(input: &str) -> u64 {
                 .split(' ')
                 .map(|n| n.parse::<u64>().unwrap())
                 .collect::<Vec<_>>();
-            if is_valid::<true>(test_num, 0, &nums) {
+            if is_valid::<ALLOW_CONCAT>(test_num, 0, &nums) {
                 Some(test_num)
             } else {
                 None
