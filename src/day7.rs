@@ -11,13 +11,15 @@ fn solve<const ALLOW_CONCAT: bool>(input: &str) -> u64 {
         .lines()
         .filter_map(|line| {
             let (test_num, nums) = line.split_once(": ").unwrap();
-            let test_num = test_num.parse::<u64>().unwrap();
+            let test_num = test_num
+                .bytes()
+                .fold(0, |acc, v| acc * 10 + (v - b'0') as u64);
             let nums = nums
                 .split(' ')
-                .map(|n| n.parse::<u64>().unwrap())
+                .map(|n| n.bytes().fold(0, |acc, v| acc * 10 + (v - b'0') as u16) as u64)
                 .collect::<Vec<_>>();
             if is_valid_rev::<ALLOW_CONCAT>(test_num, &nums) {
-                Some(test_num)
+                Some(test_num as u64)
             } else {
                 None
             }
