@@ -8,7 +8,7 @@ use seq_macro::seq;
 type AocFn = fn(&str) -> u64;
 
 seq! {
-    N in 1..=7 {
+    N in 1..=8 {
         #(
             pub mod day~N;
         )*
