@@ -1,6 +1,3 @@
-use rustc_hash::FxHashSet;
-
-
 // 4.33ms
 pub fn part1(input: &str) -> u64 {
     let input = input.as_bytes();
@@ -44,7 +41,7 @@ pub fn part1(input: &str) -> u64 {
     antinodes
 }
 
-// 203.5us
+// 187.9us
 pub fn part2(input: &str) -> u64 {
     let input = input.as_bytes();
     let line_length = input.iter().copied().position(|b| b == b'\n').unwrap() + 1;
@@ -53,8 +50,12 @@ pub fn part2(input: &str) -> u64 {
         let col = idx % line_length;
         (row, col)
     };
+    let pos_to_idx = |row: usize, col: usize| {
+        debug_assert!(col < line_length);
+        row * line_length + col
+    };
 
-    let mut antinodes = FxHashSet::default();
+    let mut antinodes = [false; 4096];
     for antennae_a_pos in
         (0..input.len()).filter(|&antennae_a_pos| input[antennae_a_pos].is_ascii_alphanumeric())
     {
@@ -73,7 +74,8 @@ pub fn part2(input: &str) -> u64 {
             // Forward
             let (mut x, mut y) = (x1, y1);
             while (0..line_length - 1).contains(&x) && (0..line_length - 1).contains(&y) {
-                antinodes.insert((y, x));
+                let idx = pos_to_idx(y, x);
+                antinodes[idx] = true;
                 let Some(nx) = x.checked_add_signed(step_x) else {
                     break;
                 };
@@ -86,7 +88,7 @@ pub fn part2(input: &str) -> u64 {
         }
     }
 
-    antinodes.len() as u64
+    antinodes.iter().filter(|a| **a).count() as u64
 }
 
 pub fn gcd(mut n: usize, mut m: usize) -> usize {
