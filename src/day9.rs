@@ -1,6 +1,6 @@
 use std::{fmt::Write, usize};
 
-// 260.3us
+// 228.7us
 pub fn part1(input: &str) -> u64 {
     let mut disk = parse_disk(input);
     let mut start = 0;
@@ -104,6 +104,7 @@ fn parse_disk(input: &str) -> Vec<Block> {
             Block::Empty
         };
         for _ in 0..(b - b'0') {
+            assert!(disk.capacity() > disk.len());
             disk.push(block);
         }
     }
