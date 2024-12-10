@@ -1,11 +1,10 @@
-// 127.0us
+// 121.0us
 pub fn part1(input: &str) -> u64 {
     let input = input.as_bytes();
     let line_length = memchr::memchr(b'\n', input).unwrap() + 1;
     let directions = [-(line_length as isize), 1, line_length as isize, -1];
 
-    (0..input.len())
-        .filter(|&pos| input[pos] == b'0')
+    memchr::memchr_iter(b'0', input)
         .map(|pos| {
             pathfinding::prelude::bfs_reach(pos, |&old_pos| successors(input, old_pos, &directions))
                 .filter(|&n| input[n] == b'9')
@@ -20,8 +19,7 @@ pub fn part2(input: &str) -> u64 {
     let line_length = memchr::memchr(b'\n', input).unwrap() + 1;
     let directions = [-(line_length as isize), 1, line_length as isize, -1];
 
-    (0..input.len())
-        .filter(|&pos| input[pos] == b'0')
+    memchr::memchr_iter(b'0', input)
         .map(|pos| {
             pathfinding::prelude::count_paths(
                 pos,
