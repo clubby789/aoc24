@@ -20,7 +20,7 @@ pub fn part1(input: &str) -> u64 {
     disk_checksum_contiguous(&disk)
 }
 
-// 16.1ms
+// 16.0ms
 pub fn part2(input: &str) -> u64 {
     let mut disk = parse_disk_segments(input);
     let mut last_block = u64::MAX;
@@ -134,7 +134,7 @@ impl SegmentDisk {
             .iter()
             .take(file_idx)
             .position(|seg| match seg {
-                Segment::Empty { size: empty_size } if *empty_size >= size => true,
+                Segment::Empty { size: empty_size } => *empty_size >= size,
                 _ => false,
             })
         else {
