@@ -26,6 +26,7 @@ pub fn part2(input: &str) -> u64 {
 
 fn blink(stones: FxHashMap<u64, u64>) -> FxHashMap<u64, u64> {
     let mut new_stones = FxHashMap::default();
+    new_stones.reserve(stones.len() * 2);
     for (&num, &count) in stones.iter() {
         if num == 0 {
             *new_stones.entry(1).or_default() += count;
