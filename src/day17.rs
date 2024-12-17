@@ -18,9 +18,21 @@ impl Registers {
             self.0[((operand - b'4') as usize) & 0b11]
         }
     }
+
+    #[inline]
+    pub fn combo_pow(&self, operand: u8) -> u64 {
+        debug_assert!(operand >= b'0' && operand <= b'6');
+        match operand {
+            b'0' => 1,
+            b'1' => 2,
+            b'2' => 4,
+            b'3' => 8,
+            _ => 2u64.pow(self.0[((operand - b'4') as usize) & 0b11] as u32),
+        }
+    }
 }
 
-// 94ns
+// 82ns
 pub fn part1(input: &str) -> u64 {
     let input = input.as_bytes();
     let mut regs = Registers([0; 4]);
@@ -64,7 +76,7 @@ pub fn part1(input: &str) -> u64 {
 
         match *cur_program {
             // adv
-            [b'0', _, operand, _, ..] => regs.0[0] /= 2u64.pow(regs.combo(operand) as u32),
+            [b'0', _, operand, _, ..] => regs.0[0] /= regs.combo_pow(operand),
             // bxl
             [b'1', _, operand, _, ..] => regs.0[1] ^= literal!(operand),
             // bst
@@ -82,10 +94,12 @@ pub fn part1(input: &str) -> u64 {
             // out
             [b'5', _, operand, _, ..] => out.push(regs.combo(operand) & 0b111),
             // bdv
-            [b'6', _, operand, _, ..] => regs.0[1] = regs.0[0] / 2u64.pow(regs.combo(operand) as u32),
+            [b'6', _, operand, _, ..] => {
+                regs.0[1] = regs.0[0] / regs.combo_pow(operand)
+            }
             [seven, _, operand, _, ..] => {
                 debug_assert_eq!(seven, b'7');
-                regs.0[2] = regs.0[0] / 2u64.pow(regs.combo(operand) as u32)
+                regs.0[2] = regs.0[0] / regs.combo_pow(operand)
             }
             _ => break,
         }
