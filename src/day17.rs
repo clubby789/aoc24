@@ -6,7 +6,19 @@ macro_rules! literal {
     };
 }
 
+// 73ns
+pub fn part1(input: &str) -> Either<u64, String> {
+    let input = input.as_bytes();
+    let (regs, program) = parse_regs(input);
+    Either::Right(run_vm(regs, program))
+}
+
+pub fn part2(_: &str) -> Either<u64, String> {
+    todo!()
+}
+
 // Dummy 'D' register for quick indexing
+#[derive(Clone, Copy)]
 pub struct Registers([u64; 4]);
 
 impl Registers {
@@ -22,9 +34,7 @@ impl Registers {
     }
 }
 
-// 73ns
-pub fn part1(input: &str) -> Either<u64, String> {
-    let input = input.as_bytes();
+fn parse_regs(input: &[u8]) -> (Registers, &[u8]) {
     let mut regs = Registers([0; 4]);
     let mut inp = memchr::memchr_iter(b':', input);
 
@@ -53,6 +63,10 @@ pub fn part1(input: &str) -> Either<u64, String> {
     };
 
     let program = &input[inp.next().unwrap() + 2..];
+    (regs, program)
+}
+
+fn run_vm(mut regs: Registers, program: &[u8]) -> String {
     let mut cur_program = program;
     let mut out = String::with_capacity(60);
     loop {
@@ -98,9 +112,5 @@ pub fn part1(input: &str) -> Either<u64, String> {
         cur_program = &cur_program[4..];
     }
     out.pop();
-    Either::Right(out)
-}
-
-pub fn part2(_: &str) -> Either<u64, String> {
-    todo!()
+    out
 }
