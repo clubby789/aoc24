@@ -6,7 +6,7 @@ macro_rules! literal {
     };
 }
 
-// 73ns
+// 76ns
 pub fn part1(input: &str) -> Either<u64, String> {
     let input = input.as_bytes();
     let (regs, program) = parse_regs(input);
@@ -46,21 +46,9 @@ fn parse_regs(input: &[u8]) -> (Registers, &[u8]) {
             .fold(0, |acc, v| acc * 10 + (v - b'0') as u64)
     };
 
-    regs.0[1] = {
-        let slice = &input[inp.next().unwrap() + 2..];
-        slice
-            .iter()
-            .take_while(|&&v| v != b'\n')
-            .fold(0, |acc, v| acc * 10 + (v - b'0') as u64)
-    };
-
-    regs.0[2] = {
-        let slice = &input[inp.next().unwrap() + 2..];
-        slice
-            .iter()
-            .take_while(|&&v| v != b'\n')
-            .fold(0, |acc, v| acc * 10 + (v - b'0') as u64)
-    };
+    // Skip B and C which are always 0
+    inp.next();
+    inp.next();
 
     let program = &input[inp.next().unwrap() + 2..];
     (regs, program)
