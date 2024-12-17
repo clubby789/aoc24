@@ -3,34 +3,30 @@ macro_rules! literal {
         ($op - b'0') as u64
     };
 }
-#[derive(Debug)]
-struct Registers {
-    a: u64,
-    b: u64,
-    c: u64,
-}
+
+// Dummy 'D' register for quick indexing
+pub struct Registers([u64; 4]);
 
 impl Registers {
+    #[inline]
     pub fn combo(&self, operand: u8) -> u64 {
-        match operand {
-            v @ b'0'..=b'3' => (v - b'0') as u64,
-            b'4' => self.a,
-            b'5' => self.b,
-            six => {
-                debug_assert_eq!(six, b'6');
-                self.c
-            }
+        if operand < b'4' {
+            debug_assert!(operand >= b'0' && operand <= b'3');
+            (operand - b'0') as u64
+        } else {
+            debug_assert!(operand >= b'4' && operand < b'7');
+            self.0[((operand - b'4') as usize) & 0b11]
         }
     }
 }
 
-// 123ns
+// 94ns
 pub fn part1(input: &str) -> u64 {
     let input = input.as_bytes();
-    let mut regs = Registers { a: 0, b: 0, c: 0 };
+    let mut regs = Registers([0; 4]);
     let mut inp = memchr::memchr_iter(b':', input);
 
-    regs.a = {
+    regs.0[0] = {
         let slice = &input[inp.next().unwrap() + 2..];
         slice
             .iter()
@@ -38,7 +34,7 @@ pub fn part1(input: &str) -> u64 {
             .fold(0, |acc, v| acc * 10 + (v - b'0') as u64)
     };
 
-    regs.b = {
+    regs.0[1] = {
         let slice = &input[inp.next().unwrap() + 2..];
         slice
             .iter()
@@ -46,7 +42,7 @@ pub fn part1(input: &str) -> u64 {
             .fold(0, |acc, v| acc * 10 + (v - b'0') as u64)
     };
 
-    regs.c = {
+    regs.0[2] = {
         let slice = &input[inp.next().unwrap() + 2..];
         slice
             .iter()
@@ -68,28 +64,28 @@ pub fn part1(input: &str) -> u64 {
 
         match *cur_program {
             // adv
-            [b'0', _, operand, _, ..] => regs.a /= 2u64.pow(regs.combo(operand) as u32),
+            [b'0', _, operand, _, ..] => regs.0[0] /= 2u64.pow(regs.combo(operand) as u32),
             // bxl
-            [b'1', _, operand, _, ..] => regs.b ^= literal!(operand),
+            [b'1', _, operand, _, ..] => regs.0[1] ^= literal!(operand),
             // bst
-            [b'2', _, operand, _, ..] => regs.b = regs.combo(operand) & 0b111,
+            [b'2', _, operand, _, ..] => regs.0[1] = regs.combo(operand) & 0b111,
             // jnz
             [b'3', _, operand, _, ..] => {
-                if regs.a != 0 {
+                if regs.0[0] != 0 {
                     cur_program = &program[operand as usize & 0b111..];
                     // Skip the PC increment
                     continue;
                 }
             }
             // bxc
-            [b'4', _, _, _, ..] => regs.b ^= regs.c,
+            [b'4', _, _, _, ..] => regs.0[1] ^= regs.0[2],
             // out
             [b'5', _, operand, _, ..] => out.push(regs.combo(operand) & 0b111),
             // bdv
-            [b'6', _, operand, _, ..] => regs.b = regs.a / 2u64.pow(regs.combo(operand) as u32),
+            [b'6', _, operand, _, ..] => regs.0[1] = regs.0[0] / 2u64.pow(regs.combo(operand) as u32),
             [seven, _, operand, _, ..] => {
                 debug_assert_eq!(seven, b'7');
-                regs.c = regs.a / 2u64.pow(regs.combo(operand) as u32)
+                regs.0[2] = regs.0[0] / 2u64.pow(regs.combo(operand) as u32)
             }
             _ => break,
         }
