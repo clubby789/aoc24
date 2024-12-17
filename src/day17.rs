@@ -20,21 +20,9 @@ impl Registers {
             self.0[((operand - b'4') as usize) & 0b11]
         }
     }
-
-    #[inline]
-    pub fn combo_pow(&self, operand: u8) -> u64 {
-        debug_assert!(operand >= b'0' && operand <= b'6');
-        match operand {
-            b'0' => 1,
-            b'1' => 2,
-            b'2' => 4,
-            b'3' => 8,
-            _ => 2u64.pow(self.0[((operand - b'4') as usize) & 0b11] as u32),
-        }
-    }
 }
 
-// 82ns
+// 73ns
 pub fn part1(input: &str) -> Either<u64, String> {
     let input = input.as_bytes();
     let mut regs = Registers([0; 4]);
@@ -67,7 +55,6 @@ pub fn part1(input: &str) -> Either<u64, String> {
     let program = &input[inp.next().unwrap() + 2..];
     let mut cur_program = program;
     let mut out = String::with_capacity(60);
-
     loop {
         debug_assert!(
             cur_program.is_empty() || (cur_program[1] == b'\n' || cur_program[1] == b',')
@@ -78,7 +65,7 @@ pub fn part1(input: &str) -> Either<u64, String> {
 
         match *cur_program {
             // adv
-            [b'0', _, operand, _, ..] => regs.0[0] /= regs.combo_pow(operand),
+            [b'0', _, operand, _, ..] => regs.0[0] >>= regs.combo(operand),
             // bxl
             [b'1', _, operand, _, ..] => regs.0[1] ^= literal!(operand),
             // bst
@@ -101,10 +88,10 @@ pub fn part1(input: &str) -> Either<u64, String> {
                 out.push(',');
             }
             // bdv
-            [b'6', _, operand, _, ..] => regs.0[1] = regs.0[0] / regs.combo_pow(operand),
+            [b'6', _, operand, _, ..] => regs.0[1] = regs.0[0] >> regs.combo(operand),
             [seven, _, operand, _, ..] => {
                 debug_assert_eq!(seven, b'7');
-                regs.0[2] = regs.0[0] / regs.combo_pow(operand)
+                regs.0[2] = regs.0[0] >> regs.combo(operand)
             }
             _ => break,
         }
