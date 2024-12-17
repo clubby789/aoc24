@@ -24,6 +24,7 @@ impl Registers {
     }
 }
 
+// 170ns
 pub fn part1(input: &str) -> u64 {
     let (registers, program) = input.split_once("\n\nProgram: ").unwrap();
     let registers: Vec<u64> = registers
@@ -34,7 +35,7 @@ pub fn part1(input: &str) -> u64 {
     let [a, b, c] = registers.try_into().unwrap();
     let mut regs = Registers { a, b, c };
     let mut cur_program = program.as_bytes();
-    let mut out = vec![];
+    let mut out = Vec::with_capacity(12);
     loop {
         debug_assert!(
             cur_program.is_empty() || (cur_program[1] == b'\n' || cur_program[1] == b',')
@@ -42,7 +43,7 @@ pub fn part1(input: &str) -> u64 {
         debug_assert!(
             cur_program.is_empty() || (cur_program[3] == b'\n' || cur_program[3] == b',')
         );
-        // println!("`{}`", cur_program[0] as char);
+
         match *cur_program {
             // adv
             [b'0', _, operand, _, ..] => regs.a /= 2u64.pow(regs.combo(operand) as u32),
