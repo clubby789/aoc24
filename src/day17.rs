@@ -24,13 +24,12 @@ impl Registers {
     }
 }
 
-// 170ns
+// 159ns
 pub fn part1(input: &str) -> u64 {
     let (registers, program) = input.split_once("\n\nProgram: ").unwrap();
     let registers: Vec<u64> = registers
         .split('\n')
         .map(|line| line.rsplit_once(' ').unwrap().1.parse().unwrap())
-        .take(3)
         .collect();
     let [a, b, c] = registers.try_into().unwrap();
     let mut regs = Registers { a, b, c };
