@@ -1,5 +1,7 @@
+use either::Either;
+
 // 4.33ms
-pub fn part1(input: &str) -> u64 {
+pub fn part1(input: &str) -> Either<u64, String> {
     let input = input.as_bytes();
     let line_length = input.iter().copied().position(|b| b == b'\n').unwrap() + 1;
     let idx_to_pos = |idx: usize| {
@@ -38,11 +40,11 @@ pub fn part1(input: &str) -> u64 {
         }
     }
 
-    antinodes
+    Either::Left(antinodes)
 }
 
 // 187.9us
-pub fn part2(input: &str) -> u64 {
+pub fn part2(input: &str) -> Either<u64, String> {
     let input = input.as_bytes();
     let line_length = input.iter().copied().position(|b| b == b'\n').unwrap() + 1;
     let idx_to_pos = |idx: usize| {
@@ -88,7 +90,7 @@ pub fn part2(input: &str) -> u64 {
         }
     }
 
-    antinodes.iter().filter(|a| **a).count() as u64
+    Either::Left(antinodes.iter().filter(|a| **a).count() as u64)
 }
 
 pub fn gcd(mut n: usize, mut m: usize) -> usize {

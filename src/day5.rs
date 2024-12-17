@@ -1,54 +1,60 @@
+use either::Either;
+
 // 72.5s
-pub fn part1(input: &str) -> u64 {
+pub fn part1(input: &str) -> Either<u64, String> {
     let (ordering_rules, updates) = input.split_once("\n\n").unwrap();
     let orderings = parse_orderings(ordering_rules);
 
-    parse_updates(updates)
-        .filter(|nums| {
-            orderings.iter().all(|(first, last)| {
-                if let Some((first_pos, last_pos)) =
-                    Option::zip(nums.position(first), nums.position(last))
-                {
-                    first_pos < last_pos
-                } else {
-                    true
-                }
-            })
-        })
-        .map(|nums| nums.mid() as u64)
-        .sum()
-}
-
-// 483.8us
-pub fn part2(input: &str) -> u64 {
-    let (ordering_rules, updates) = input.split_once("\n\n").unwrap();
-    let orderings = parse_orderings(ordering_rules);
-
-    parse_updates(updates)
-        .filter_map(|mut nums| {
-            let mut any_incorrect = false;
-
-            let mut changed_in_loop = true;
-
-            while changed_in_loop {
-                changed_in_loop = false;
-                orderings.iter().for_each(|(first, last)| {
+    Either::Left(
+        parse_updates(updates)
+            .filter(|nums| {
+                orderings.iter().all(|(first, last)| {
                     if let Some((first_pos, last_pos)) =
                         Option::zip(nums.position(first), nums.position(last))
                     {
-                        if first_pos > last_pos {
-                            any_incorrect = true;
-                            changed_in_loop = true;
-                            nums.swap(*first, *last);
-                        }
+                        first_pos < last_pos
+                    } else {
+                        true
                     }
-                });
-            }
+                })
+            })
+            .map(|nums| nums.mid() as u64)
+            .sum(),
+    )
+}
 
-            any_incorrect.then_some(nums)
-        })
-        .map(|nums| nums.mid() as u64)
-        .sum()
+// 483.8us
+pub fn part2(input: &str) -> Either<u64, String> {
+    let (ordering_rules, updates) = input.split_once("\n\n").unwrap();
+    let orderings = parse_orderings(ordering_rules);
+
+    Either::Left(
+        parse_updates(updates)
+            .filter_map(|mut nums| {
+                let mut any_incorrect = false;
+
+                let mut changed_in_loop = true;
+
+                while changed_in_loop {
+                    changed_in_loop = false;
+                    orderings.iter().for_each(|(first, last)| {
+                        if let Some((first_pos, last_pos)) =
+                            Option::zip(nums.position(first), nums.position(last))
+                        {
+                            if first_pos > last_pos {
+                                any_incorrect = true;
+                                changed_in_loop = true;
+                                nums.swap(*first, *last);
+                            }
+                        }
+                    });
+                }
+
+                any_incorrect.then_some(nums)
+            })
+            .map(|nums| nums.mid() as u64)
+            .sum(),
+    )
 }
 
 fn parse_orderings(input: &str) -> Vec<(u8, u8)> {

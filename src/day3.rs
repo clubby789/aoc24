@@ -1,7 +1,8 @@
+use either::Either;
 use memchr::arch::all::rabinkarp;
 
 // 4.6us
-pub fn part1(input: &str) -> u64 {
+pub fn part1(input: &str) -> Either<u64, String> {
     let mut input = input.as_bytes();
     let mut total = 0;
 
@@ -16,11 +17,11 @@ pub fn part1(input: &str) -> u64 {
             _ => continue,
         }
     }
-    total
+    Either::Left(total)
 }
 
 // 11.9us
-pub fn part2(input: &str) -> u64 {
+pub fn part2(input: &str) -> Either<u64, String> {
     let mut input = input.as_bytes();
     let mut total = 0;
     let mut enabled = true;
@@ -43,7 +44,7 @@ pub fn part2(input: &str) -> u64 {
             total += val;
         }
     }
-    total
+    Either::Left(total)
 }
 
 #[inline]

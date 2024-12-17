@@ -1,25 +1,27 @@
+use either::Either;
+
 // 121.0us
-pub fn part1(input: &str) -> u64 {
+pub fn part1(input: &str) -> Either<u64, String> {
     let input = input.as_bytes();
     let line_length = memchr::memchr(b'\n', input).unwrap() + 1;
     let directions = [-(line_length as isize), 1, line_length as isize, -1];
 
-    memchr::memchr_iter(b'0', input)
+    Either::Left(memchr::memchr_iter(b'0', input)
         .map(|pos| {
             pathfinding::prelude::bfs_reach(pos, |&old_pos| successors(input, old_pos, &directions))
                 .filter(|&n| input[n] == b'9')
                 .count() as u64
         })
-        .sum()
+        .sum())
 }
 
 // 106.76us
-pub fn part2(input: &str) -> u64 {
+pub fn part2(input: &str) -> Either<u64, String> {
     let input = input.as_bytes();
     let line_length = memchr::memchr(b'\n', input).unwrap() + 1;
     let directions = [-(line_length as isize), 1, line_length as isize, -1];
 
-    memchr::memchr_iter(b'0', input)
+    Either::Left(memchr::memchr_iter(b'0', input)
         .map(|pos| {
             pathfinding::prelude::count_paths(
                 pos,
@@ -27,7 +29,7 @@ pub fn part2(input: &str) -> u64 {
                 |&fin| input[fin] == b'9',
             ) as u64
         })
-        .sum()
+        .sum())
 }
 
 fn successors(input: &[u8], from: usize, directions: &[isize; 4]) -> impl Iterator<Item = usize> {

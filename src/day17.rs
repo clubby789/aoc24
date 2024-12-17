@@ -1,3 +1,5 @@
+use either::Either;
+
 macro_rules! literal {
     ($op:expr) => {
         ($op - b'0') as u64
@@ -33,7 +35,7 @@ impl Registers {
 }
 
 // 82ns
-pub fn part1(input: &str) -> u64 {
+pub fn part1(input: &str) -> Either<u64, String> {
     let input = input.as_bytes();
     let mut regs = Registers([0; 4]);
     let mut inp = memchr::memchr_iter(b':', input);
@@ -64,7 +66,7 @@ pub fn part1(input: &str) -> u64 {
 
     let program = &input[inp.next().unwrap() + 2..];
     let mut cur_program = program;
-    let mut out = Vec::with_capacity(12);
+    let mut out = String::with_capacity(60);
 
     loop {
         debug_assert!(
@@ -92,11 +94,14 @@ pub fn part1(input: &str) -> u64 {
             // bxc
             [b'4', _, _, _, ..] => regs.0[1] ^= regs.0[2],
             // out
-            [b'5', _, operand, _, ..] => out.push(regs.combo(operand) & 0b111),
-            // bdv
-            [b'6', _, operand, _, ..] => {
-                regs.0[1] = regs.0[0] / regs.combo_pow(operand)
+            [b'5', _, operand, _, ..] => {
+                // Prevent growing/alloc failure code paths
+                assert!(out.len() + 2 <= out.capacity());
+                out.push(((regs.combo(operand) & 0b111) as u8 + b'0') as char);
+                out.push(',');
             }
+            // bdv
+            [b'6', _, operand, _, ..] => regs.0[1] = regs.0[0] / regs.combo_pow(operand),
             [seven, _, operand, _, ..] => {
                 debug_assert_eq!(seven, b'7');
                 regs.0[2] = regs.0[0] / regs.combo_pow(operand)
@@ -105,16 +110,10 @@ pub fn part1(input: &str) -> u64 {
         }
         cur_program = &cur_program[4..];
     }
-    // When benchmarking, don't do string printing
-    if !*crate::IS_BENCH {
-        let out: Vec<_> = out.into_iter().map(|n| n.to_string()).collect();
-        println!("{}", out.join(","));
-        0
-    } else {
-        out.len() as u64
-    }
+    out.pop();
+    Either::Right(out)
 }
 
-pub fn part2(_: &str) -> u64 {
+pub fn part2(_: &str) -> Either<u64, String> {
     todo!()
 }

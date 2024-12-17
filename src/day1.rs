@@ -3,8 +3,10 @@ use std::{
     simd::{LaneCount, Simd, SupportedLaneCount, num::SimdUint},
 };
 
+use either::Either;
+
 // 12.8us
-pub fn part1(input: &str) -> u64 {
+pub fn part1(input: &str) -> either::Either<u64, String> {
     let line_length = memchr::memchr(b'\n', input.as_bytes()).unwrap();
     let lines = input.len() / line_length;
     let mut left = Vec::with_capacity(lines);
@@ -16,11 +18,11 @@ pub fn part1(input: &str) -> u64 {
 
     left.sort_unstable();
     right.sort_unstable();
-    left.iter().zip(&right).map(|(l, r)| l.abs_diff(*r)).sum()
+    Either::Left(left.iter().zip(&right).map(|(l, r)| l.abs_diff(*r)).sum())
 }
 
 // 5.4us
-pub fn part2(input: &str) -> u64 {
+pub fn part2(input: &str) -> either::Either<u64, String> {
     let mut num_counts = vec![0u8; 99999];
     let line_length = memchr::memchr(b'\n', input.as_bytes()).unwrap();
     let lines = input.len() / line_length;
@@ -30,10 +32,12 @@ pub fn part2(input: &str) -> u64 {
         appeared.push(num1);
         num_counts[num2 as usize] += 1;
     });
-    appeared
-        .iter()
-        .map(|&num| num * num_counts[num as usize] as u64)
-        .sum()
+    Either::Left(
+        appeared
+            .iter()
+            .map(|&num| num * num_counts[num as usize] as u64)
+            .sum(),
+    )
 }
 
 fn for_each_line<F>(input: &str, mut f: F)

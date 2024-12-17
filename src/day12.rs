@@ -1,4 +1,6 @@
-pub fn part1(input: &str) -> u64 {
+use either::Either;
+
+pub fn part1(input: &str) -> Either<u64, String> {
     #[derive(Copy, Clone, Debug)]
     struct Region {
         // plant: char,
@@ -59,15 +61,15 @@ pub fn part1(input: &str) -> u64 {
         flood_fill(input, visited.as_mut_slice(), start, &directions, &mut func);
         regions.push(region);
     }
-    regions
+    Either::Left(regions
         .iter()
         .map(|region| region.area * region.perimeter)
-        .sum()
+        .sum())
 }
 
 // TODO
-pub fn part2(_: &str) -> u64 {
-    0
+pub fn part2(_: &str) -> Either<u64, String> {
+    Either::Left(0)
 }
 
 fn flood_fill<F>(

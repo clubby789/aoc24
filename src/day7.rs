@@ -1,11 +1,13 @@
 use std::simd::u16x16;
 
-pub fn part1(input: &str) -> u64 {
-    solve::<false>(input)
+use either::Either;
+
+pub fn part1(input: &str) -> Either<u64, String> {
+    Either::Left(solve::<false>(input))
 }
 
-pub fn part2(input: &str) -> u64 {
-    solve::<true>(input)
+pub fn part2(input: &str) -> Either<u64, String> {
+    Either::Left(solve::<true>(input))
 }
 
 fn solve<const ALLOW_CONCAT: bool>(input: &str) -> u64 {

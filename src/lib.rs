@@ -3,15 +3,9 @@
 
 mod util;
 
-use std::sync::LazyLock;
-
 use seq_macro::seq;
 
-type AocFn = fn(&str) -> u64;
-
-static IS_BENCH: LazyLock<bool> = LazyLock::new(|| {
-    std::env::args().any(|arg| arg == "--bench")
-});
+type AocFn = fn(&str) -> either::Either<u64, String>;
 
 seq! {
     N in 1..=17 {

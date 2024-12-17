@@ -1,6 +1,7 @@
+use either::Either;
 use rustc_hash::FxHashMap;
 
-pub fn part1(input: &str) -> u64 {
+pub fn part1(input: &str) -> Either<u64, String> {
     let mut stones = input
         .trim_ascii_end()
         .split(' ')
@@ -9,10 +10,10 @@ pub fn part1(input: &str) -> u64 {
     for _ in 0..25 {
         stones = blink(stones);
     }
-    stones.values().sum()
+    Either::Left(stones.values().sum())
 }
 
-pub fn part2(input: &str) -> u64 {
+pub fn part2(input: &str) -> Either<u64, String> {
     let mut stones = input
         .trim_ascii_end()
         .split(' ')
@@ -21,7 +22,7 @@ pub fn part2(input: &str) -> u64 {
     for _ in 0..75 {
         stones = blink(stones);
     }
-    stones.values().sum()
+    Either::Left(stones.values().sum())
 }
 
 fn blink(stones: FxHashMap<u64, u64>) -> FxHashMap<u64, u64> {

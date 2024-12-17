@@ -1,7 +1,9 @@
 use std::cmp::Ordering;
 
+use either::Either;
+
 // 8.5us
-pub fn part1(input: &str) -> u64 {
+pub fn part1(input: &str) -> Either<u64, String> {
     let mut input = input.as_bytes();
     let mut count = 0;
 
@@ -12,11 +14,11 @@ pub fn part1(input: &str) -> u64 {
             count += 1;
         }
     }
-    count
+    Either::Left(count)
 }
 
 // 19.8s
-pub fn part2(input: &str) -> u64 {
+pub fn part2(input: &str) -> Either<u64, String> {
     let mut input = input.as_bytes();
     let mut count = 0;
     let mut numbers = [0; 8];
@@ -40,7 +42,7 @@ pub fn part2(input: &str) -> u64 {
         }
         input = next_input;
     }
-    count
+    Either::Left(count)
 }
 
 fn check_line_valid(mut input: &[u8]) -> (&[u8], Result<(), usize>) {

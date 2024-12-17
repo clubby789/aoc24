@@ -1,7 +1,9 @@
 use std::{fmt::Write, num::NonZeroU64, usize};
 
+use either::Either;
+
 // 228.7us
-pub fn part1(input: &str) -> u64 {
+pub fn part1(input: &str) -> Either<u64, String> {
     let mut disk = parse_disk_blocks(input);
     let mut start = 0;
     let mut end = disk.len() - 1;
@@ -17,11 +19,11 @@ pub fn part1(input: &str) -> u64 {
         }
         disk.swap(start, end);
     }
-    disk_checksum_contiguous(&disk)
+    Either::Left(disk_checksum_contiguous(&disk))
 }
 
 // 16.0ms
-pub fn part2(input: &str) -> u64 {
+pub fn part2(input: &str) -> Either<u64, String> {
     let mut disk = parse_disk_segments(input);
     let mut last_block = u64::MAX;
     let mut back = disk.len() - 1;
@@ -52,7 +54,7 @@ pub fn part2(input: &str) -> u64 {
         }
     }
 
-    disk.checksum()
+    Either::Left(disk.checksum())
 }
 
 fn parse_disk_blocks(input: &str) -> Vec<Block> {

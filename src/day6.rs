@@ -1,4 +1,6 @@
-pub fn part1(input: &str) -> u64 {
+use either::Either;
+
+pub fn part1(input: &str) -> Either<u64, String> {
     let input = input.as_bytes();
     let start = memchr::memchr(b'^', input).unwrap();
     let line_length = memchr::memchr(b'\n', input).unwrap() + 1;
@@ -23,10 +25,10 @@ pub fn part1(input: &str) -> u64 {
         }
         true
     });
-    visit_count
+    Either::Left(visit_count)
 }
 
-pub fn part2(input: &str) -> u64 {
+pub fn part2(input: &str) -> Either<u64, String> {
     let input = input.as_bytes();
     let start = memchr::memchr(b'^', input).unwrap();
     let line_length = memchr::memchr(b'\n', input).unwrap() + 1;
@@ -45,28 +47,36 @@ pub fn part2(input: &str) -> u64 {
     let mut second_grid = input.to_vec();
     let mut visited = vec![[false; 4]; input.len()];
 
-    (0..input.len())
-        .filter(|&i| input[i] == b'.')
-        .filter(|&i| {
-            second_grid[i] = b'#';
+    Either::Left(
+        (0..input.len())
+            .filter(|&i| input[i] == b'.')
+            .filter(|&i| {
+                second_grid[i] = b'#';
 
-            let mut cycle = false;
-            visited.fill([false; 4]);
-            walk_grid(start, Direction::Up, &directions, &second_grid, |pos, dir| {
-                if visited[pos][dir as usize] {
-                    cycle = true;
-                    false
-                } else {
-                    visited[pos][dir as usize] = true;
-                    true
-                }
-            });
+                let mut cycle = false;
+                visited.fill([false; 4]);
+                walk_grid(
+                    start,
+                    Direction::Up,
+                    &directions,
+                    &second_grid,
+                    |pos, dir| {
+                        if visited[pos][dir as usize] {
+                            cycle = true;
+                            false
+                        } else {
+                            visited[pos][dir as usize] = true;
+                            true
+                        }
+                    },
+                );
 
-            second_grid[i] = b'.';
+                second_grid[i] = b'.';
 
-            cycle
-        })
-        .count() as u64
+                cycle
+            })
+            .count() as u64,
+    )
 }
 
 #[repr(usize)]
