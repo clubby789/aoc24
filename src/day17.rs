@@ -24,17 +24,40 @@ impl Registers {
     }
 }
 
-// 159ns
+// 123ns
 pub fn part1(input: &str) -> u64 {
-    let (registers, program) = input.split_once("\n\nProgram: ").unwrap();
-    let registers: Vec<u64> = registers
-        .split('\n')
-        .map(|line| line.rsplit_once(' ').unwrap().1.parse().unwrap())
-        .collect();
-    let [a, b, c] = registers.try_into().unwrap();
-    let mut regs = Registers { a, b, c };
-    let mut cur_program = program.as_bytes();
+    let input = input.as_bytes();
+    let mut regs = Registers { a: 0, b: 0, c: 0 };
+    let mut inp = memchr::memchr_iter(b':', input);
+
+    regs.a = {
+        let slice = &input[inp.next().unwrap() + 2..];
+        slice
+            .iter()
+            .take_while(|&&v| v != b'\n')
+            .fold(0, |acc, v| acc * 10 + (v - b'0') as u64)
+    };
+
+    regs.b = {
+        let slice = &input[inp.next().unwrap() + 2..];
+        slice
+            .iter()
+            .take_while(|&&v| v != b'\n')
+            .fold(0, |acc, v| acc * 10 + (v - b'0') as u64)
+    };
+
+    regs.c = {
+        let slice = &input[inp.next().unwrap() + 2..];
+        slice
+            .iter()
+            .take_while(|&&v| v != b'\n')
+            .fold(0, |acc, v| acc * 10 + (v - b'0') as u64)
+    };
+
+    let program = &input[inp.next().unwrap() + 2..];
+    let mut cur_program = program;
     let mut out = Vec::with_capacity(12);
+
     loop {
         debug_assert!(
             cur_program.is_empty() || (cur_program[1] == b'\n' || cur_program[1] == b',')
@@ -53,7 +76,7 @@ pub fn part1(input: &str) -> u64 {
             // jnz
             [b'3', _, operand, _, ..] => {
                 if regs.a != 0 {
-                    cur_program = &program.as_bytes()[operand as usize & 0b111..];
+                    cur_program = &program[operand as usize & 0b111..];
                     // Skip the PC increment
                     continue;
                 }
