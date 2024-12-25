@@ -8,7 +8,7 @@ use seq_macro::seq;
 type AocFn = fn(&str) -> either::Either<u64, String>;
 
 seq! {
-    N in 1..=17 {
+    N in 1..=25 {
         #(
             pub mod day~N;
         )*
